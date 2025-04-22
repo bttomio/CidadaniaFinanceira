@@ -148,6 +148,7 @@ Blumenau_VAR_PROD <- df_Blumenau_CT %>%
   mutate(`Média (produto)` = round(`Média (produto)`, 2)) 
 
 # 10. Expansão para incluir todos os meses para o VAR_PROD
+meses_num <- 1:12
 todos_meses_VAR_PROD <- expand.grid(Ano = anos, 
                                     Mês = meses, 
                                     Cidade = unique(Blumenau_VAR_PROD$Cidade),

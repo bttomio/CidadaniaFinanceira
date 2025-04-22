@@ -19,18 +19,61 @@ ui <- navbarPage(
   # Página inicial (Capa) sem seleção de página
   tabPanel("Início",
            fluidPage(
-             titlePanel("Bem-vindo(a)!"),
+             tags$head(
+               tags$style(HTML("
+        .inicio-container {
+          text-align: center;
+          padding: 40px 20px;
+        }
+        .inicio-logo {
+          max-width: 200px;
+          margin-top: 20px;
+        }
+        .inicio-title {
+          font-size: 32px;
+          font-weight: bold;
+          margin-bottom: 10px;
+          color: #2c3e50;
+        }
+        .inicio-text {
+          font-size: 18px;
+          margin-bottom: 20px;
+          color: #34495e;
+        }
+        .info-box {
+          display: inline-block;
+          background-color: #f5f5f5;
+          border-left: 5px solid #007bff;
+          padding: 15px 20px;
+          font-size: 16px;
+          color: #2c3e50;
+          border-radius: 8px;
+        }
+      "))
+             ),
              
-             mainPanel(
-               h4("Esta página divulga os dados coletados pelo projeto de extensão Cidadania Financeira da ",
-                  a("Universidade de Blumenau (FURB).", href = "https://www.furb.br")),
-               p("Escolha uma das opções acima para acessar as páginas de dados filtrados."),
-               tags$div(tags$img(src = "logo.png", class = "logo")),
-               
-               # Caixa para o último valor da cesta básica de Blumenau
-               #uiOutput("caixa_cesta_blumenau")
+             div(class = "inicio-container",
+                 
+                 div(class = "inicio-title", "Bem-vindo(a)!"),
+                 
+                 div(class = "inicio-text",
+                     HTML("Esta plataforma divulga os dados coletados pelo projeto de extensão <strong>Cidadania Financeira</strong> da 
+        <a href='https://www.furb.br' target='_blank'>Universidade Regional de Blumenau (FURB)</a>.")
+                 ),
+                 
+                 div(class = "inicio-text",
+                     "Escolha uma das opções no menu acima para visualizar os dados da cesta básica e dos produtos analisados."),
+                 
+                 br(),
+                 
+                 div(class = "info-box", uiOutput("ultima_atualizacao")),
+                 
+                 br(),
+                 
+                 img(src = "logo.png", class = "inicio-logo")
              )
-           )),
+           )
+  ),
   
   # Página de "Cesta Básica - Variação Mensal"
   tabPanel("Cesta Básica",
@@ -122,6 +165,11 @@ ui <- navbarPage(
 
 # Definir a lógica do servidor
 server <- function(input, output, session) {
+  
+  # Last update
+  output$ultima_atualizacao <- renderUI({
+    strong(paste("Última atualização:", format(Sys.Date(), "%d/%m/%Y")))
+  })
   
   # Converter a coluna 'Período' para o formato Date, se necessário
   CT$Período <- as.Date(CT$Período)

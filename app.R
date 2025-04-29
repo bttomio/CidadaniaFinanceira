@@ -66,7 +66,7 @@ ui <- navbarPage(
                  
                  br(),
                  
-                 div(class = "info-box", uiOutput("ultima_atualizacao")),
+                 div(class = "info-box", "Última atualização: 28/04/2025"), # ATUALIZAR MANUALMENTE, SEMPRE!
                  
                  br(),
                  
@@ -160,15 +160,27 @@ ui <- navbarPage(
                  )
                )
              )
-           ))
+           )),
+  tabPanel(
+    "Metodologia da Cesta",
+    fluidPage(
+      h3("Metodologia da Cesta Básica"),
+      p("Ela é baseada na Cesta Básica de Alimentos do DIEESE (Departamento Intersindical de Estatística e Estudos Socioeconômicos), pesquisada mensalmente em 18 capitais brasileiras. É uma cesta de alimentos composta por 13 produtos alimentícios em quantidades suficientes para garantir, durante um mês, o sustento e bem-estar de uma pessoa adulta."),
+      h4("Composição da Cesta Básica - Região 3, que inclui Santa Catarina"),
+      tableOutput("regiao3_table")
+    )
+  )
 )
 
 # Definir a lógica do servidor
 server <- function(input, output, session) {
   
-  # Last update
-  output$ultima_atualizacao <- renderUI({
-    strong(paste("Última atualização: 28/04/2025")) # ATUALIZAR MANUALMENTE, SEMPRE!
+  # Tabela com os itens da cesta
+  output$regiao3_table <- renderTable({
+    data.frame(
+      Produto = c("Açúcar", "Arroz", "Batata", "Café em pó", "Carne bovina", "Farinha", "Feijão", "Fruta (banana)", "Leite", "Manteiga", "Óleo de soja", "Pão francês", "Tomate"),
+      Quantidade = c("3,0 kg", "3,0 kg", "6,0 kg", "600 g", "6,6 kg", "1,5 kg", "4,5 kg", "90 unidades", "7,5 l", "750 g", "900 g", "6,0 kg", "9,0 kg")
+    )
   })
   
   # Converter a coluna 'Período' para o formato Date, se necessário

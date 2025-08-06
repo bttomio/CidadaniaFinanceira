@@ -1,3 +1,6 @@
+# Para atualizar a página use: 
+# rsconnect::deployApp()
+
 # Carregar as bibliotecas necessárias
 library(shiny)
 library(DT)
@@ -66,7 +69,7 @@ ui <- navbarPage(
                  
                  br(),
                  
-                 div(class = "info-box", "Última atualização: 28/04/2025"), # ATUALIZAR MANUALMENTE, SEMPRE!
+                 div(class = "info-box", "Última atualização: 06/08/2025"), # ATUALIZAR MANUALMENTE, SEMPRE!
                  
                  br(),
                  

@@ -5,6 +5,6 @@ account: bttomio
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 13595075
-bundleId: 10741929
+bundleId: 10773273
 url: https://bttomio.shinyapps.io/cidadaniafinanceira/
 version: 1

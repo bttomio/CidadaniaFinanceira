@@ -1,5 +1,13 @@
 # Para atualizar a página use: 
-# rsconnect::deployApp()
+## Recuperar o número de visitas na página e inserir aqui, rodando este código:
+#library(DBI)
+#library(RSQLite)
+#con <- dbConnect(SQLite(), dbname = "visit_counter.db")
+#dbExecute(con, "UPDATE visits SET count = ? WHERE id = 1", params = list(NEW_COUNT)) # Substitua NEW_COUNT pelo valor atual
+#dbDisconnect(con)
+
+# Atualiza o app para a página:
+## rsconnect::deployApp()
 
 # Carregar as bibliotecas necessárias
 library(shiny)
@@ -8,6 +16,24 @@ library(dplyr)
 library(ggplot2)
 library(readxl)
 library(shinydashboard)
+library(DBI)
+library(RSQLite)
+
+# Função para ler e incrementar o contador de visitas com SQLite
+get_visit_count <- function() {
+  con <- dbConnect(SQLite(), dbname = "visit_counter.db")
+  if (dbExistsTable(con, "visits")) {
+    count <- dbGetQuery(con, "SELECT count FROM visits WHERE id = 1")$count
+    count <- count + 1
+    dbExecute(con, "UPDATE visits SET count = ? WHERE id = 1", params = list(count))
+  } else {
+    count <- 1
+    dbExecute(con, "CREATE TABLE visits (id INTEGER PRIMARY KEY, count INTEGER)")
+    dbExecute(con, "INSERT INTO visits (id, count) VALUES (1, ?)", params = list(count))
+  }
+  dbDisconnect(con)
+  return(count)
+}
 
 CT <- read_xlsx("CT.xlsx")
 VAR_PROD <- read_xlsx("VAR_PROD.xlsx")
@@ -16,10 +42,35 @@ VAR_PROD <- read_xlsx("VAR_PROD.xlsx")
 ui <- navbarPage(
   title = "Cidadania Financeira [FURB]",
   tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = "style.css")  # Link the CSS file
+    tags$link(rel = "stylesheet", type = "text/css", href = "style.css"),  # Link the CSS file
+    tags$style(HTML("
+      .youtube-container {
+        position: relative;
+        padding-bottom: 56.25%; /* Proporção 16:9 */
+        height: 0;
+        overflow: hidden;
+        max-width: 100%;
+        margin-bottom: 20px;
+      }
+      .youtube-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .media-link {
+        font-size: 18px;
+        color: #007bff;
+        text-decoration: none;
+      }
+      .media-link:hover {
+        text-decoration: underline;
+      }
+    "))
   ),
   
-  # Página inicial (Capa) sem seleção de página
+  # Página inicial (Capa)
   tabPanel("Início",
            fluidPage(
              tags$head(
@@ -52,28 +103,43 @@ ui <- navbarPage(
           color: #2c3e50;
           border-radius: 8px;
         }
+        .visit-counter {
+          display: inline-block;
+          background-color: #e9f7ef;
+          border-left: 5px solid #28a745;
+          padding: 15px 20px;
+          font-size: 16px;
+          color: #2c3e50;
+          border-radius: 8px;
+          margin-top: 10px;
+        }
       "))
              ),
              
              div(class = "inicio-container",
-                 
-                 div(class = "inicio-title", "Bem-vindo(a)!"),
-                 
+                 div(class = "inicio-title", "Bem-vindo(a)! Agradecemos muito sua visita!"),
+                 br(),
+                 br(),
                  div(class = "inicio-text",
                      HTML("Esta plataforma divulga os dados coletados pelo projeto de extensão <strong>Cidadania Financeira</strong> da 
         <a href='https://www.furb.br' target='_blank'>Universidade Regional de Blumenau (FURB)</a>.")
                  ),
-                 
                  div(class = "inicio-text",
                      "Escolha uma das opções no menu acima para visualizar os dados da cesta básica e dos produtos analisados."),
-                 
                  br(),
-                 
-                 div(class = "info-box", "Última atualização: 06/08/2025"), # ATUALIZAR MANUALMENTE, SEMPRE!
-                 
+                 div(class = "inicio-text",
+                     "Entre em contato conosco: ",
+                     tags$a(href = "mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "bttomio@furb.br"),
+                     " ou ",
+                     tags$a(href = "mailto:financas@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "financas@furb.br"),
+                     ". Estamos sempre à disposição!"
+                 ),
                  br(),
-                 
-                 img(src = "logo.png", class = "inicio-logo")
+                 div(class = "info-box", "Última atualização: 06/08/2025"),
+                 br(),
+                 div(class = "visit-counter", textOutput("visit_count")),
+                 br(),
+                 img(src = "logo.jpg", class = "inicio-logo")
              )
            )
   ),
@@ -81,12 +147,9 @@ ui <- navbarPage(
   # Página de "Cesta Básica - Variação Mensal"
   tabPanel("Cesta Básica",
            fluidPage(
-             # Texto destacado
              tags$div(style = "font-size: 20px; font-weight: bold; color: #1a1a1a; margin-bottom: 20px;", 
                       "Para visualizar um gráfico, selecione: Cidade."),
-             
              titlePanel("Cesta Básica"),
-             
              sidebarLayout(
                sidebarPanel(
                  selectInput("cidade", "Selecione a Cidade", choices = c("Todos", unique(CT$Cidade)), selected = "Todos"),
@@ -103,10 +166,7 @@ ui <- navbarPage(
                    width = 12,
                    DTOutput("tabela_cesta")
                  ),
-                 
                  br(),
-                 
-                 # Gráfico da variação da Cesta Básica
                  conditionalPanel(
                    condition = "input.cidade != 'Todos'",
                    box(
@@ -124,12 +184,9 @@ ui <- navbarPage(
   # Página de "Dados dos Produtos"
   tabPanel("Produtos da Cesta",
            fluidPage(
-             # Texto destacado
              tags$div(style = "font-size: 20px; font-weight: bold; color: #1a1a1a; margin-bottom: 20px;", 
                       "Para visualizar um gráfico, selecione: Produto e Cidade."),
-             
              titlePanel("Produtos da Cesta"),
-             
              sidebarLayout(
                sidebarPanel(
                  selectInput("produto", "Selecione o Produto", choices = c("Todos", unique(VAR_PROD$Produto)), selected = "Todos"),
@@ -147,10 +204,7 @@ ui <- navbarPage(
                    width = 12,
                    DTOutput("tabela_produtos")
                  ),
-                 
                  br(),
-                 
-                 # Gráfico da variação dos produtos
                  conditionalPanel(
                    condition = "input.produto != 'Todos' && input.cidade_produto != 'Todos'",
                    box(
@@ -164,6 +218,8 @@ ui <- navbarPage(
                )
              )
            )),
+  
+  # Página de "Metodologia da Cesta"
   tabPanel(
     "Metodologia da Cesta",
     fluidPage(
@@ -172,11 +228,71 @@ ui <- navbarPage(
       h4("Composição da Cesta Básica - Região 3, que inclui Santa Catarina"),
       tableOutput("regiao3_table")
     )
+  ),
+  
+  # Nova Página de "Mídia" (antes de Equipe)
+  tabPanel(
+    "Mídia",
+    fluidPage(
+      div(class = "inicio-container",
+          div(class = "inicio-title", "Mídia e Divulgação"),
+          div(class = "inicio-text",
+              "Confira divulgações do projeto Cidadania Financeira:"),
+          br(),
+          div(class = "youtube-container",
+              tags$iframe(
+                width = "560",
+                height = "315",
+                src = "https://www.youtube.com/embed/zVeoKZVWMW0?si=xGwcYA4Mr9GUZIxh",
+                title = "YouTube video player",
+                frameborder = "0",
+                allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+                referrerpolicy = "strict-origin-when-cross-origin",
+                allowfullscreen = TRUE
+              )
+          ),
+          div(class = "inicio-text",
+              tags$a(
+                href = "https://globoplay.globo.com/v/13715431/",
+                target = "_blank",
+                class = "media-link",
+                "Participação no Jornal ao Vivo - GloboPlay [NSC TV]"
+              )
+          ),
+          br(),
+          img(src = "logo.jpg", class = "inicio-logo")
+      )
+    )
+  ),
+  
+  # Página de "Equipe"
+  tabPanel(
+    "Equipe",
+    fluidPage(
+      div(class = "inicio-container",
+          div(class = "inicio-title", "Equipe do Projeto"),
+          div(class = "inicio-text",
+              HTML("<strong>Prof. Dr. Bruno Thiago Tomio</strong><br>Coordenador/Criador do projeto<br>
+                   <a href='https://bttomio.github.io' target='_blank'>Página pessoal</a>")),
+          div(class = "inicio-text",
+              HTML("<strong>Stefanie Romualdo Schulze</strong><br>Bolsista do projeto")),
+          br(),
+          img(src = "logo.jpg", class = "inicio-logo")
+      )
+    )
   )
 )
 
 # Definir a lógica do servidor
 server <- function(input, output, session) {
+  
+  # Inicializar o contador de visitas
+  visit_count <- reactiveVal(get_visit_count())
+  
+  # Renderizar o contador de visitas
+  output$visit_count <- renderText({
+    paste("Total de Visitas:", visit_count())
+  })
   
   # Tabela com os itens da cesta
   output$regiao3_table <- renderTable({
@@ -315,7 +431,7 @@ server <- function(input, output, session) {
            x = "Período", 
            y = "Variação (%)") +
       scale_y_continuous(labels = label_percent(scale = 1)) +
-      scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), breaks = scales::date_breaks("1 month")) +  # Format the x-axis to show Month/Year
+      scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), breaks = scales::date_breaks("1 month")) +
       theme_bw() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 14),
@@ -357,7 +473,7 @@ server <- function(input, output, session) {
       geom_hline(yintercept = 0, color = "black", linetype = "solid", size = 1) +
       labs(title = paste("Variação do Produto:", input$produto), x = "Período", y = "Variação (%)") +
       scale_y_continuous(labels = label_percent(scale = 1)) +
-      scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), breaks = scales::date_breaks("1 month")) +  # Format the x-axis to show Month/Year
+      scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), breaks = scales::date_breaks("1 month")) +
       theme_bw() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 14),
@@ -368,6 +484,7 @@ server <- function(input, output, session) {
         panel.border = element_rect(color = "black", size = 1)
       )
   })
+  
   # Filtrar dados da Variação Anual
   dados_variacao_anual <- reactive({
     CT %>%
@@ -382,4 +499,3 @@ server <- function(input, output, session) {
 
 # Executar o aplicativo Shiny
 shinyApp(ui = ui, server = server)
-

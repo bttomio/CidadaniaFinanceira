@@ -1,10 +1,8 @@
 # Para atualizar a página use: 
 ## Recuperar o número de visitas na página e inserir aqui, rodando este código:
-#library(DBI)
-#library(RSQLite)
-#con <- dbConnect(SQLite(), dbname = "visit_counter.db")
-#dbExecute(con, "UPDATE visits SET count = ? WHERE id = 1", params = list(NEW_COUNT)) # Substitua NEW_COUNT pelo valor atual
-#dbDisconnect(con)
+#library(googlesheets4)
+#gs4_auth(path = Sys.getenv("GOOGLE_SHEETS_AUTH"))  # Use environment variable for auth
+#range_write("1ABQ98Le37xrH4i9HzptJvYfDtegomDTitpGtKm0H9Fs", data = data.frame(Count = 10), sheet = 1, range = "A2", col_names = FALSE) # Substitua NEW_COUNT pelo valor atual
 
 # Atualiza o app para a página:
 ## rsconnect::deployApp()
@@ -16,22 +14,24 @@ library(dplyr)
 library(ggplot2)
 library(readxl)
 library(shinydashboard)
-library(DBI)
-library(RSQLite)
+library(googlesheets4)
 
-# Função para ler e incrementar o contador de visitas com SQLite
-get_visit_count <- function() {
-  con <- dbConnect(SQLite(), dbname = "visit_counter.db")
-  if (dbExistsTable(con, "visits")) {
-    count <- dbGetQuery(con, "SELECT count FROM visits WHERE id = 1")$count
-    count <- count + 1
-    dbExecute(con, "UPDATE visits SET count = ? WHERE id = 1", params = list(count))
-  } else {
+# Função para ler e incrementar o contador de visitas com Google Sheets
+get_visit_count <- function(sheet_id = "1ABQ98Le37xrH4i9HzptJvYfDtegomDTitpGtKm0H9Fs") {
+  # Authenticate with service account from environment variable
+  gs4_auth(path = Sys.getenv("GOOGLE_SHEETS_AUTH"))
+  
+  # Read current count
+  sheet_data <- read_sheet(sheet_id, sheet = 1)
+  if (nrow(sheet_data) == 0 || is.na(sheet_data$Count[1])) {
     count <- 1
-    dbExecute(con, "CREATE TABLE visits (id INTEGER PRIMARY KEY, count INTEGER)")
-    dbExecute(con, "INSERT INTO visits (id, count) VALUES (1, ?)", params = list(count))
+  } else {
+    count <- sheet_data$Count[1] + 1
   }
-  dbDisconnect(con)
+  
+  # Update the sheet (overwrite the count in A2)
+  range_write(sheet_id, data = data.frame(Count = count), sheet = 1, range = "A2", col_names = FALSE)
+  
   return(count)
 }
 
@@ -230,7 +230,7 @@ ui <- navbarPage(
     )
   ),
   
-  # Nova Página de "Mídia" (antes de Equipe)
+  # Página de "Mídia"
   tabPanel(
     "Mídia",
     fluidPage(

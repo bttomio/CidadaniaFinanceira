@@ -228,61 +228,49 @@ ui <- navbarPage(
              )
            )),
   
-  # Página de "Relatórios"
-  tabPanel("Relatórios",
+  # Nova Página de "Gráficos Blumenau"
+  tabPanel("Gráficos Blumenau",
            fluidPage(
-             titlePanel("Relatórios da Cesta Básica de Blumenau"),
-             sidebarLayout(
-               sidebarPanel(
-                 selectInput("relatorio_mes_ano", "Selecione o Mês/Ano", 
-                             choices = c("Selecione", "Agosto/2025"), 
-                             selected = "Selecione")
-               ),
-               mainPanel(
-                 conditionalPanel(
-                   condition = "input.relatorio_mes_ano == 'Agosto/2025'",
-                   div(class = "intro-text",
-                       HTML("
-                       <h3>Cesta Básica de Blumenau apresenta queda em agosto de 2025</h3>
-                       <p>O Indicador da Cesta Básica de Blumenau, divulgado mensalmente pelo projeto Cidadania Financeira da FURB, registrou um valor de R$ 669,94 (ver Gráfico 1). Constata-se uma redução de 1,57% no custo total dos alimentos essenciais em agosto de 2025, em comparação com o mês anterior (ver Gráfico 2). Essa variação reflete o comportamento dos preços de 13 produtos que compõem a cesta básica, revelando oscilações significativas tanto de alta quanto de baixa.</p>
-                       <p>Conforme Gráfico 3, entre os itens que apresentaram aumento de preço, destacam-se:</p>
-                       <ul>
-                         <li>Batata, com alta expressiva de 17,99%, sendo o produto com maior aumento no mês.</li>
-                         <li>Banana, que subiu 6,97%, seguida pelo pão francês (1,55%), farinha de trigo (1,19%) e açúcar refinado (0,22%).</li>
-                       </ul>
-                       <p>Por outro lado, diversos produtos registraram queda nos preços, contribuindo para o recuo geral do indicador:</p>
-                       <ul>
-                         <li>O café em pó teve a maior redução, com queda de 7,09%.</li>
-                         <li>A carne caiu 4,99%, seguida pela manteiga (4,17%), leite (3,26%), feijão preto (3,14%), arroz tipo 1 (2,01%), óleo de soja (1,12%) e tomate (1,07%).</li>
-                       </ul>
-                       <p>Essas variações refletem fatores sazonais, logísticos e de mercado que influenciam diretamente o custo de vida da população local.</p>
-                       <p>Para mais informações sobre o indicador e outros dados econômicos regionais, acesse <a href='https://furb.br/cidadaniafinanceira' target='_blank'>furb.br/cidadaniafinanceira</a>.</p>
-                       <p>Contato: <a href='mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...'>Prof. Dr. Bruno Thiago Tomio – bttomio@furb.br</a></p>
-                     ")
-                   ),
-                   box(
-                     title = "Gráfico 1",
-                     status = "success",
-                     solidHeader = TRUE,
-                     width = 12,
-                     plotOutput("grafico_valor_cesta_blumenau")
-                   ),
-                   box(
-                     title = "Gráfico 2",
-                     status = "success",
-                     solidHeader = TRUE,
-                     width = 12,
-                     plotOutput("grafico_variacao_cesta_blumenau")
-                   ),
-                   box(
-                     title = "Gráfico 3",
-                     status = "success",
-                     solidHeader = TRUE,
-                     width = 12,
-                     plotOutput("grafico_produtos_blumenau")
-                   )
-                 )
-               )
+             titlePanel("Gráficos da Cesta Básica - Blumenau"),
+             div(class = "intro-text",
+                 HTML("
+                   <h3>Cesta Básica de Blumenau apresenta queda em agosto de 2025</h3>
+                   <p>O Indicador da Cesta Básica de Blumenau, divulgado mensalmente pelo projeto Cidadania Financeira da FURB, registrou uma redução de 1,57% no custo total dos alimentos essenciais em agosto de 2025, em comparação com o mês anterior. Essa variação reflete o comportamento dos preços de 13 produtos que compõem a cesta básica, revelando oscilações significativas tanto de alta quanto de baixa.</p>
+                   <p>Entre os itens que apresentaram aumento de preço, destacam-se:</p>
+                   <ul>
+                     <li>Batata, com alta expressiva de 17,99%, sendo o produto com maior variação positiva no mês.</li>
+                     <li>Banana, que subiu 6,97%, seguida pelo pão francês (1,55%), farinha de trigo (1,19%) e açúcar refinado (0,22%).</li>
+                   </ul>
+                   <p>Por outro lado, diversos produtos registraram queda nos preços, contribuindo para o recuo geral do indicador:</p>
+                   <ul>
+                     <li>O café em pó teve a maior redução, com queda de 7,09%.</li>
+                     <li>A carne caiu 4,99%, seguida pela manteiga (4,17%), leite (3,26%), feijão preto (3,14%), arroz tipo 1 (2,01%), óleo de soja (1,12%) e tomate (1,07%).</li>
+                   </ul>
+                   <p>Essas variações refletem fatores sazonais, logísticos e de mercado que influenciam diretamente o custo de vida da população local.</p>
+                   <p>Para mais informações sobre o indicador e outros dados econômicos regionais, acesse <a href='https://furb.br/cidadaniafinanceira' target='_blank'>furb.br/cidadaniafinanceira</a>.</p>
+                   <p>Contato: <a href='mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...'>Prof. Dr. Bruno Thiago Tomio – bttomio@furb.br</a></p>
+                 ")
+             ),
+             box(
+               title = "Valor da Cesta Básica (Últimos 13 Meses)",
+               status = "success",
+               solidHeader = TRUE,
+               width = 12,
+               plotOutput("grafico_valor_cesta_blumenau")
+             ),
+             box(
+               title = "Variação Percentual da Cesta Básica (Últimos 13 Meses)",
+               status = "success",
+               solidHeader = TRUE,
+               width = 12,
+               plotOutput("grafico_variacao_cesta_blumenau")
+             ),
+             box(
+               title = "Variação Percentual dos Produtos (Último Mês)",
+               status = "success",
+               solidHeader = TRUE,
+               width = 12,
+               plotOutput("grafico_produtos_blumenau")
              )
            )
   ),
@@ -490,7 +478,7 @@ server <- function(input, output, session) {
                       color = dados$label_color) +
       geom_hline(yintercept = 0, color = "black", linetype = "solid", size = 1) +
       labs(title = paste("Variação Percentual da Cesta Básica em", input$cidade), 
-           x = NULL, 
+           x = "Período", 
            y = "Variação (%)") +
       scale_y_continuous(labels = label_percent(scale = 1)) +
       scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), breaks = scales::date_breaks("1 month")) +
@@ -560,8 +548,8 @@ server <- function(input, output, session) {
       scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), 
                    breaks = scales::date_breaks("1 month")) +
       labs(title = "Valor da Cesta Básica em Blumenau (Últimos 13 Meses)",
-           x = NULL,
-           y = NULL,
+           x = "Período",
+           y = "Valor (R$)",
            caption = paste("Fonte: Projeto de Extensão Cidadania Financeira da Universidade de Blumenau (FURB).",
                            "Mais detalhes em furb.br/cidadaniafinanceira.")) +
       theme_bw() +
@@ -605,7 +593,7 @@ server <- function(input, output, session) {
       scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), 
                    breaks = scales::date_breaks("1 month")) +
       labs(title = "Variação Percentual da Cesta Básica em Blumenau (Últimos 13 Meses)",
-           x = NULL,
+           x = "Período",
            y = "Variação (%)",
            caption = paste("Fonte: Projeto de Extensão Cidadania Financeira da Universidade de Blumenau (FURB).",
                            "Mais detalhes em furb.br/cidadaniafinanceira.")) +
@@ -636,18 +624,17 @@ server <- function(input, output, session) {
     
     ggplot(dados, aes(x = Produto, y = `Variação (%)`, fill = `Variação (%)`)) +
       geom_bar(stat = "identity") +
-      scale_y_continuous(labels = function(x) paste0(x, "%")) +  # Add % to y-axis labels
       scale_fill_gradient2(low = "#FF0000", mid = "#FFFFFF", high = "#0000CC", 
                            limits = c(-limite, limite), midpoint = 0) +
       geom_text(aes(label = paste0(round(`Variação (%)`, 2), "%")), 
                 vjust = ifelse(dados$`Variação (%)` >= 0, -0.5, 1.5), size = 12/3) +
       labs(title = paste("Variação de Preços da Cesta Básica de Blumenau -", 
                          format(max(dados$Período), "%b/%Y", locale = "pt_BR")),
-           x = NULL,
+           x = "Produto",
            y = NULL,
            caption = paste("Fonte: Projeto de Extensão Cidadania Financeira da Universidade de Blumenau (FURB).",
                            "Mais detalhes em furb.br/cidadaniafinanceira.")) +
-      theme_bw() +
+      theme_minimal() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
         axis.text.y = element_text(size = 12),
@@ -655,7 +642,6 @@ server <- function(input, output, session) {
         plot.title = element_text(size = 12, face = "bold"),
         panel.grid.major.x = element_blank(),
         legend.position = "none",
-        panel.border = element_rect(color = "black", size = 1),
         plot.caption = element_text(hjust = 0, size = 12)
       )
   })

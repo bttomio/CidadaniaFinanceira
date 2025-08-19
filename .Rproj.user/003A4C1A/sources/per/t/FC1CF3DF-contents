@@ -7,7 +7,11 @@ library(readxl)
 library(shinydashboard)
 library(googlesheets4)
 library(ggrepel)
-library(scales)
+library(scales)# Carregar o pacote lubridate, se necessário
+library(lubridate)
+
+# Configurar o locale para português do Brasil
+Sys.setlocale("LC_TIME", "pt_BR.UTF-8")
 
 # Função para ler e incrementar o contador de visitas com Google Sheets
 get_visit_count <- function(sheet_id = "1ABQ98Le37xrH4i9HzptJvYfDtegomDTitpGtKm0H9Fs") {
@@ -34,7 +38,13 @@ VAR_PROD <- read_xlsx("VAR_PROD.xlsx")
 
 # Definir a interface do usuário
 ui <- navbarPage(
-  title = "Cidadania Financeira [FURB]",
+  title = div(
+    tags$a(
+      href = "https://bttomio.shinyapps.io/cidadaniafinanceira/",  # Link para a página inicial (ajuste conforme a URL da sua aplicação)
+      "Cidadania Financeira [FURB]",
+      style = "text-decoration: none; color: inherit;"  # Estilo para parecer com o texto original
+    )
+  ),
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "style.css"),  # Link the CSS file
     tags$style(HTML("
@@ -139,12 +149,12 @@ ui <- navbarPage(
                  div(class = "inicio-text",
                      "Entre em contato conosco: ",
                      tags$a(href = "mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "bttomio@furb.br"),
-                     " ou ",
-                     tags$a(href = "mailto:financas@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "financas@furb.br"),
-                     ". Estamos sempre à disposição!"
-                 ),
+                     " | ",
+                     tags$a(href = "mailto:financas@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "financas@furb.br")),
+                 div(class = "inicio-text",
+                     "Estamos sempre à disposição!"),
                  br(),
-                 div(class = "info-box", "Última atualização: 06/08/2025"),
+                 div(class = "info-box", "Última atualização: 19/08/2025"),
                  br(),
                  div(class = "visit-counter", textOutput("visit_count")),
                  br(),
@@ -554,16 +564,25 @@ server <- function(input, output, session) {
     
     ggplot(dados, aes(x = Período, y = Cesta)) +
       geom_bar(stat = "identity", fill = "#1f77b4") +
-      geom_text(aes(label = scales::number_format(prefix = "R$ ", big.mark = ".", decimal.mark = ",", accuracy = 0.01)(Cesta)),
+      geom_text(aes(label = scales::number_format(big.mark = ".", decimal.mark = ",", accuracy = 0.01)(Cesta)),
                 vjust = -0.5, size = 12/3) +
-      scale_y_continuous(labels = scales::number_format(prefix = "R$ ", big.mark = ".", decimal.mark = ",")) +
-      scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), 
-                   breaks = scales::date_breaks("1 month")) +
-      labs(title = "Valor da Cesta Básica em Blumenau (Últimos 13 Meses)",
-           x = NULL,
-           y = NULL,
-           caption = paste("Fonte: Projeto de Extensão Cidadania Financeira da Universidade de Blumenau (FURB).",
-                           "Mais detalhes em furb.br/cidadaniafinanceira.")) +
+      scale_y_continuous(
+        labels = scales::number_format(prefix = "R$ ", big.mark = ".", decimal.mark = ","),
+        expand = expansion(mult = c(0, 0.1)) # Add 10% extra space at the top
+      ) +
+      scale_x_date(
+        labels = scales::date_format("%b/%Y", locale = "pt_BR"),
+        breaks = scales::date_breaks("1 month"),
+        limits = c(min(dados$Período) - 15, max(dados$Período) + 15), # Add padding to date range
+        expand = expansion(add = c(0.5, 0.5)) # Add padding to avoid clipping
+      ) +
+      labs(
+        title = "Valor da Cesta Básica em Blumenau (Últimos 13 Meses)",
+        x = NULL,
+        y = NULL,
+        caption = paste("Fonte: Projeto de Extensão Cidadania Financeira da Universidade de Blumenau (FURB).",
+                        "\n Mais detalhes em furb.br/cidadaniafinanceira.")
+      ) +
       theme_bw() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
@@ -599,16 +618,16 @@ server <- function(input, output, session) {
                       direction = "both",
                       force = 1,
                       show.legend = FALSE) +
-      geom_hline(yintercept = 0, color = "black", linetype = "solid", size = 1) +
+      geom_hline(yintercept = 0, color = "darkgrey", linetype = "solid", size = 1) +
       scale_color_identity() +
       scale_y_continuous(labels = scales::percent_format(scale = 1)) +
       scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), 
                    breaks = scales::date_breaks("1 month")) +
       labs(title = "Variação Percentual da Cesta Básica em Blumenau (Últimos 13 Meses)",
            x = NULL,
-           y = "Variação (%)",
+           y = NULL,
            caption = paste("Fonte: Projeto de Extensão Cidadania Financeira da Universidade de Blumenau (FURB).",
-                           "Mais detalhes em furb.br/cidadaniafinanceira.")) +
+                           "\n Mais detalhes em furb.br/cidadaniafinanceira.")) +
       theme_bw() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
@@ -636,17 +655,19 @@ server <- function(input, output, session) {
     
     ggplot(dados, aes(x = Produto, y = `Variação (%)`, fill = `Variação (%)`)) +
       geom_bar(stat = "identity") +
-      scale_y_continuous(labels = function(x) paste0(x, "%")) +  # Add % to y-axis labels
+      scale_y_continuous(
+        labels = function(x) paste0(x, "%"), # Add % to y-axis labels
+        expand = expansion(mult = c(0.1, 0.1))) + # Add 10% extra space at the top) 
       scale_fill_gradient2(low = "#FF0000", mid = "#FFFFFF", high = "#0000CC", 
                            limits = c(-limite, limite), midpoint = 0) +
       geom_text(aes(label = paste0(round(`Variação (%)`, 2), "%")), 
                 vjust = ifelse(dados$`Variação (%)` >= 0, -0.5, 1.5), size = 12/3) +
       labs(title = paste("Variação de Preços da Cesta Básica de Blumenau -", 
-                         format(max(dados$Período), "%b/%Y", locale = "pt_BR")),
+                         format(max(dados$Período), "%b/%Y", language = "pt-BR")),
            x = NULL,
            y = NULL,
            caption = paste("Fonte: Projeto de Extensão Cidadania Financeira da Universidade de Blumenau (FURB).",
-                           "Mais detalhes em furb.br/cidadaniafinanceira.")) +
+                           "\n Mais detalhes em furb.br/cidadaniafinanceira.")) +
       theme_bw() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 12),

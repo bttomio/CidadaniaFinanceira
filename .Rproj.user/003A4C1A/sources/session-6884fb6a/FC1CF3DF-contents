@@ -154,7 +154,7 @@ ui <- navbarPage(
                  div(class = "inicio-text",
                      "Estamos sempre à disposição!"),
                  br(),
-                 div(class = "info-box", "Última atualização: 19/08/2025"),
+                 div(class = "info-box", "Última atualização: 25/09/2025"),
                  br(),
                  div(class = "visit-counter", textOutput("visit_count")),
                  br(),
@@ -317,16 +317,12 @@ ui <- navbarPage(
           div(class = "inicio-text",
               "Confira divulgações do projeto Cidadania Financeira:"),
           br(),
-          div(class = "youtube-container",
-              tags$iframe(
-                width = "560",
-                height = "315",
-                src = "https://www.youtube.com/embed/zVeoKZVWMW0?si=xGwcYA4Mr9GUZIxh",
-                title = "YouTube video player",
-                frameborder = "0",
-                allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
-                referrerpolicy = "strict-origin-when-cross-origin",
-                allowfullscreen = TRUE
+          div(class = "inicio-text",
+              tags$a(
+                href = "https://youtube.com/playlist?list=PLAL8vVk6Z3KDgc7DBFHEa8ddIM5dTgBh-&si=0QSsK_77HA874AxZ",
+                target = "_blank",
+                class = "media-link",
+                "Colunas no Boletim de Economia da FURB FM (107,1)"
               )
           ),
           div(class = "inicio-text",
@@ -334,7 +330,7 @@ ui <- navbarPage(
                 href = "https://globoplay.globo.com/v/13715431/",
                 target = "_blank",
                 class = "media-link",
-                "Participação no Jornal ao Vivo - GloboPlay [NSC TV]"
+                "Participação ao vivo no Jornal do Almoço (Blumenau) - NSC TV [GloboPlay]"
               )
           ),
           br(),

@@ -3,7 +3,7 @@
     "path": null,
     "project_path": null,
     "type": "r_source",
-    "hash": "524444869",
+    "hash": "0",
     "contents": "",
     "dirty": true,
     "created": 1740160395461.0,
@@ -13,7 +13,7 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "13,40",
+        "cursorPosition": "8,26",
         "scrollLine": "0"
     },
     "folds": "",

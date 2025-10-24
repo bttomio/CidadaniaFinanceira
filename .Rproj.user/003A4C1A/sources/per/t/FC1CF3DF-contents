@@ -154,7 +154,7 @@ ui <- navbarPage(
                  div(class = "inicio-text",
                      "Estamos sempre à disposição!"),
                  br(),
-                 div(class = "info-box", "Última atualização: 25/09/2025"),
+                 div(class = "info-box", "Última atualização: 24/10/2025"),
                  br(),
                  div(class = "visit-counter", textOutput("visit_count")),
                  br(),
@@ -245,7 +245,7 @@ ui <- navbarPage(
              sidebarLayout(
                sidebarPanel(
                  selectInput("relatorio_mes_ano", "Selecione o Mês/Ano", 
-                             choices = c("Selecione", "Agosto/2025"), 
+                             choices = c("Selecione", "Agosto/2025", "Setembro/2025", "Outubro/2025"), 
                              selected = "Selecione")
                ),
                mainPanel(
@@ -347,11 +347,15 @@ ui <- navbarPage(
           div(class = "inicio-title", "Equipe do Projeto"),
           div(class = "inicio-text",
               HTML("<strong>Prof. Dr. Bruno Thiago Tomio</strong><br>Coordenador/Criador do projeto<br>
-                   <a href='https://bttomio.github.io' target='_blank'>Página pessoal</a>")),
+                   <a href='https://www.linkedin.com/in/bttomio/' target='_blank'>LinkedIn</a>")),
           div(class = "inicio-text",
               HTML("<strong>Stefanie Romualdo Schulze</strong><br>Bolsista do projeto")),
           br(),
-          img(src = "logo.jpg", class = "inicio-logo")
+          
+          div(class = "inicio-text",
+              tags$a(href = "https://www.furb.br", target = "_blank",
+                     img(src = "logo.jpg", class = "inicio-logo"))
+          )
       )
     )
   )
@@ -551,10 +555,19 @@ server <- function(input, output, session) {
   
   # Renderizar o gráfico de Valor da Cesta Básica (Últimos 13 Meses)
   output$grafico_valor_cesta_blumenau <- renderPlot({
+    
+    req(input$relatorio_mes_ano != "Selecione")
+    
+    # Converter o input para data
+    data_selecionada <- as.Date(paste0("01/", input$relatorio_mes_ano), format = "%d/%B/%Y")
+    
+    
+    # Filtrar os 13 meses até o mês selecionado
     dados <- CT %>%
-      filter(Cidade == "Blumenau") %>%
+      filter(Cidade == "Blumenau", Período <= data_selecionada) %>%
       arrange(desc(Período)) %>%
-      slice_head(n = 13)
+      slice_head(n = 13) %>%
+      arrange(Período)  # Para manter a ordem cronológica no gráfico
     
     req(nrow(dados) > 0)
     
@@ -591,11 +604,18 @@ server <- function(input, output, session) {
   })
   
   # Renderizar o gráfico de Variação Percentual da Cesta Básica (Últimos 13 Meses)
+  
   output$grafico_variacao_cesta_blumenau <- renderPlot({
+    req(input$relatorio_mes_ano != "Selecione")
+    
+    # Converter input para data
+    data_selecionada <- as.Date(paste0("01/", input$relatorio_mes_ano), format = "%d/%B/%Y")
+    
     dados <- CT %>%
-      filter(Cidade == "Blumenau") %>%
+      filter(Cidade == "Blumenau", Período <= data_selecionada) %>%
       arrange(desc(Período)) %>%
-      slice_head(n = 13)
+      slice_head(n = 13) %>%
+      arrange(Período)  # Para manter ordem cronológica no gráfico
     
     req(nrow(dados) > 0)
     
@@ -636,17 +656,19 @@ server <- function(input, output, session) {
   })
   
   # Renderizar o gráfico de Variação Percentual dos Produtos (Último Mês)
+  
   output$grafico_produtos_blumenau <- renderPlot({
+    req(input$relatorio_mes_ano != "Selecione")
+    
+    data_selecionada <- as.Date(paste0("01/", input$relatorio_mes_ano), format = "%d/%B/%Y")
+    
     dados <- VAR_PROD %>%
-      filter(Cidade == "Blumenau") %>%
-      arrange(desc(Período)) %>%
-      slice_head(n = 13) %>%
+      filter(Cidade == "Blumenau", Período == data_selecionada) %>%
       arrange(`Variação (%)`)
     
     req(nrow(dados) > 0)
     
     dados$Produto <- factor(dados$Produto, levels = dados$Produto)
-    
     limite <- max(abs(dados$`Variação (%)`), na.rm = TRUE) * 1.1
     
     ggplot(dados, aes(x = Produto, y = `Variação (%)`, fill = `Variação (%)`)) +

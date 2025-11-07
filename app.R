@@ -154,7 +154,7 @@ ui <- navbarPage(
                  div(class = "inicio-text",
                      "Estamos sempre à disposição!"),
                  br(),
-                 div(class = "info-box", "Última atualização: 24/10/2025"),
+                 div(class = "info-box", "Última atualização: 7/11/2025"),
                  br(),
                  div(class = "visit-counter", textOutput("visit_count")),
                  br(),
@@ -168,7 +168,6 @@ ui <- navbarPage(
            fluidPage(
              tags$div(style = "font-size: 20px; font-weight: bold; color: #1a1a1a; margin-bottom: 20px;", 
                       "Para visualizar um gráfico, selecione: Cidade."),
-             titlePanel("Cesta Básica"),
              sidebarLayout(
                sidebarPanel(
                  selectInput("cidade", "Selecione a Cidade", choices = c("Todos", unique(CT$Cidade)), selected = "Todos"),
@@ -205,7 +204,6 @@ ui <- navbarPage(
            fluidPage(
              tags$div(style = "font-size: 20px; font-weight: bold; color: #1a1a1a; margin-bottom: 20px;", 
                       "Para visualizar um gráfico, selecione: Produto e Cidade."),
-             titlePanel("Produtos da Cesta"),
              sidebarLayout(
                sidebarPanel(
                  selectInput("produto", "Selecione o Produto", choices = c("Todos", unique(VAR_PROD$Produto)), selected = "Todos"),
@@ -301,7 +299,6 @@ ui <- navbarPage(
   tabPanel(
     "Metodologia da Cesta",
     fluidPage(
-      h3("Metodologia da Cesta Básica"),
       p("Ela é baseada na Cesta Básica de Alimentos do DIEESE (Departamento Intersindical de Estatística e Estudos Socioeconômicos), pesquisada mensalmente em 18 capitais brasileiras. É uma cesta de alimentos composta por 13 produtos alimentícios em quantidades suficientes para garantir, durante um mês, o sustento e bem-estar de uma pessoa adulta."),
       h4("Composição da Cesta Básica - Região 3, que inclui Santa Catarina"),
       tableOutput("regiao3_table")
@@ -313,7 +310,6 @@ ui <- navbarPage(
     "Mídia",
     fluidPage(
       div(class = "inicio-container",
-          div(class = "inicio-title", "Mídia e Divulgação"),
           div(class = "inicio-text",
               "Confira divulgações do projeto Cidadania Financeira:"),
           br(),
@@ -344,7 +340,6 @@ ui <- navbarPage(
     "Equipe",
     fluidPage(
       div(class = "inicio-container",
-          div(class = "inicio-title", "Equipe do Projeto"),
           div(class = "inicio-text",
               HTML("<strong>Prof. Dr. Bruno Thiago Tomio</strong><br>Coordenador/Criador do projeto<br>
                    <a href='https://www.linkedin.com/in/bttomio/' target='_blank'>LinkedIn</a>")),

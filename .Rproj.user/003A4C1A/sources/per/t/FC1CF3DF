@@ -3,7 +3,7 @@
     "path": "~/GitHub/CidadaniaFinanceira/app.R",
     "project_path": "app.R",
     "type": "r_source",
-    "hash": "3702655924",
+    "hash": "473077108",
     "contents": "",
     "dirty": false,
     "created": 1755644531817.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "357,10",
-        "scrollLine": "346"
+        "cursorPosition": "146,54",
+        "scrollLine": "142"
     },
     "folds": "",
-    "lastKnownWriteTime": 1761347890,
+    "lastKnownWriteTime": 1762558060,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1761347890180,
+    "last_content_update": 1762558060511,
     "read_only": false,
     "read_only_alternatives": []
 }

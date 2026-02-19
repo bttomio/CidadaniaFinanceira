@@ -154,7 +154,7 @@ ui <- navbarPage(
                  div(class = "inicio-text",
                      "Estamos sempre à disposição!"),
                  br(),
-                 div(class = "info-box", "Última atualização: 7/11/2025"),
+                 div(class = "info-box", "Última atualização: 19/02/2026"),
                  br(),
                  div(class = "visit-counter", textOutput("visit_count")),
                  br(),

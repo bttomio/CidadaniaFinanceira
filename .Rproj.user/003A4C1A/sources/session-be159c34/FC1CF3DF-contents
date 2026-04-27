@@ -5,32 +5,12 @@ library(dplyr)
 library(ggplot2)
 library(readxl)
 library(shinydashboard)
-library(googlesheets4)
 library(ggrepel)
 library(scales)# Carregar o pacote lubridate, se necessário
 library(lubridate)
 
 # Configurar o locale para português do Brasil
 Sys.setlocale("LC_TIME", "pt_BR.UTF-8")
-
-# Função para ler e incrementar o contador de visitas com Google Sheets
-get_visit_count <- function(sheet_id = "1ABQ98Le37xrH4i9HzptJvYfDtegomDTitpGtKm0H9Fs") {
-  # Authenticate with service account from environment variable
-  gs4_auth(path = Sys.getenv("GOOGLE_SHEETS_AUTH"))
-  
-  # Read current count
-  sheet_data <- read_sheet(sheet_id, sheet = 1)
-  if (nrow(sheet_data) == 0 || is.na(sheet_data$Count[1])) {
-    count <- 1
-  } else {
-    count <- sheet_data$Count[1] + 1
-  }
-  
-  # Update the sheet (overwrite the count in A2)
-  range_write(sheet_id, data = data.frame(Count = count), sheet = 1, range = "A2", col_names = FALSE)
-  
-  return(count)
-}
 
 # Carregar os dados
 CT <- read_xlsx("CT.xlsx")
@@ -122,16 +102,6 @@ ui <- navbarPage(
           color: #2c3e50;
           border-radius: 8px;
         }
-        .visit-counter {
-          display: inline-block;
-          background-color: #e9f7ef;
-          border-left: 5px solid #28a745;
-          padding: 15px 20px;
-          font-size: 16px;
-          color: #2c3e50;
-          border-radius: 8px;
-          margin-top: 10px;
-        }
       "))
              ),
              
@@ -155,8 +125,6 @@ ui <- navbarPage(
                      "Estamos sempre à disposição!"),
                  br(),
                  div(class = "info-box", "Última atualização: 19/02/2026"),
-                 br(),
-                 div(class = "visit-counter", textOutput("visit_count")),
                  br(),
                  img(src = "logo.jpg", class = "inicio-logo")
              )
@@ -343,8 +311,6 @@ ui <- navbarPage(
           div(class = "inicio-text",
               HTML("<strong>Prof. Dr. Bruno Thiago Tomio</strong><br>Coordenador/Criador do projeto<br>
                    <a href='https://www.linkedin.com/in/bttomio/' target='_blank'>LinkedIn</a>")),
-          div(class = "inicio-text",
-              HTML("<strong>Stefanie Romualdo Schulze</strong><br>Bolsista do projeto")),
           br(),
           
           div(class = "inicio-text",
@@ -358,14 +324,6 @@ ui <- navbarPage(
 
 # Definir a lógica do servidor
 server <- function(input, output, session) {
-  
-  # Inicializar o contador de visitas
-  visit_count <- reactiveVal(get_visit_count())
-  
-  # Renderizar o contador de visitas
-  output$visit_count <- renderText({
-    paste("Total de Visitas:", visit_count())
-  })
   
   # Tabela com os itens da cesta
   output$regiao3_table <- renderTable({

@@ -3,24 +3,24 @@
     "path": "~/GitHub/CidadaniaFinanceira/dados.R",
     "project_path": "dados.R",
     "type": "r_source",
-    "hash": "2294852044",
+    "hash": "0",
     "contents": "",
-    "dirty": false,
+    "dirty": true,
     "created": 1745964818861.0,
     "source_on_save": false,
     "relative_order": 2,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "5,18",
-        "scrollLine": "0"
+        "cursorPosition": "13,2",
+        "scrollLine": "1"
     },
     "folds": "",
     "lastKnownWriteTime": 1762558474,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1762558474881,
+    "last_content_update": 1777325078543,
     "read_only": false,
     "read_only_alternatives": []
 }

@@ -5,6 +5,6 @@ account: cestabasica
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 13594981
-bundleId: 9518118
+bundleId: 11959398
 url: https://cestabasica.shinyapps.io/cidadaniafinanceira/
 version: 1

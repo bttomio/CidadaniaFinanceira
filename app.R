@@ -118,13 +118,11 @@ ui <- navbarPage(
                  br(),
                  div(class = "inicio-text",
                      "Entre em contato conosco: ",
-                     tags$a(href = "mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "bttomio@furb.br"),
-                     " | ",
-                     tags$a(href = "mailto:financas@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "financas@furb.br")),
+                     tags$a(href = "mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "bttomio@furb.br")),
                  div(class = "inicio-text",
                      "Estamos sempre à disposição!"),
                  br(),
-                 div(class = "info-box", "Última atualização: 06/05/2026"),
+                 div(class = "info-box", "Última atualização: 11/05/2026"),
                  br(),
                  img(src = "logo.jpg", class = "inicio-logo")
              )

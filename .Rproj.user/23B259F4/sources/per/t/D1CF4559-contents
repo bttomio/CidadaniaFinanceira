@@ -116,13 +116,7 @@ ui <- navbarPage(
                  div(class = "inicio-text",
                      "Escolha uma das opções no menu acima para visualizar os dados da cesta básica e dos produtos analisados."),
                  br(),
-                 div(class = "inicio-text",
-                     "Entre em contato conosco: ",
-                     tags$a(href = "mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "bttomio@furb.br")),
-                 div(class = "inicio-text",
-                     "Estamos sempre à disposição!"),
-                 br(),
-                 div(class = "info-box", "Última atualização: 11/05/2026"),
+                 div(class = "info-box", "Última atualização: 18/05/2026"),
                  br(),
                  img(src = "logo.jpg", class = "inicio-logo")
              )
@@ -309,8 +303,13 @@ ui <- navbarPage(
           div(class = "inicio-text",
               HTML("<strong>Prof. Dr. Bruno Thiago Tomio</strong><br>Coordenador/Criador do projeto<br>
                    <a href='https://www.linkedin.com/in/bttomio/' target='_blank'>LinkedIn</a>")),
+
+          div(class = "inicio-text",
+              "Entre em contato conosco: ",
+              tags$a(href = "mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "bttomio@furb.br")),
+          div(class = "inicio-text",
+              "Estamos sempre à disposição!"),
           br(),
-          
           div(class = "inicio-text",
               tags$a(href = "https://www.furb.br", target = "_blank",
                      img(src = "logo.jpg", class = "inicio-logo"))

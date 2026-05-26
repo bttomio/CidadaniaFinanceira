@@ -116,7 +116,7 @@ ui <- navbarPage(
                  div(class = "inicio-text",
                      "Escolha uma das opções no menu acima para visualizar os dados da cesta básica e dos produtos analisados."),
                  br(),
-                 div(class = "info-box", "Última atualização: 18/05/2026"),
+                 div(class = "info-box", "Última atualização: 25/05/2026"),
                  br(),
                  img(src = "logo.jpg", class = "inicio-logo")
              )
@@ -197,63 +197,63 @@ ui <- navbarPage(
            )),
   
   # Página de "Relatórios"
-  tabPanel("Relatórios",
-           fluidPage(
-             titlePanel("Relatórios da Cesta Básica de Blumenau"),
-             sidebarLayout(
-               sidebarPanel(
-                 selectInput("relatorio_mes_ano", "Selecione o Mês/Ano", 
-                             choices = c("Selecione", "Agosto/2025", "Setembro/2025", "Outubro/2025"), 
-                             selected = "Selecione")
-               ),
-               mainPanel(
-                 conditionalPanel(
-                   condition = "input.relatorio_mes_ano == 'Agosto/2025'",
-                   div(class = "intro-text",
-                       HTML("
-                       <h3>Cesta Básica de Blumenau apresenta queda em agosto de 2025</h3>
-                       <p>O Indicador da Cesta Básica de Blumenau, divulgado mensalmente pelo projeto Cidadania Financeira da FURB, registrou um valor de R$ 669,94 (ver Gráfico 1). Constata-se uma redução de 1,57% no custo total dos alimentos essenciais em agosto de 2025, em comparação com o mês anterior (ver Gráfico 2). Essa variação reflete o comportamento dos preços de 13 produtos que compõem a cesta básica, revelando oscilações significativas tanto de alta quanto de baixa.</p>
-                       <p>Conforme Gráfico 3, entre os itens que apresentaram aumento de preço, destacam-se:</p>
-                       <ul>
-                         <li>Batata, com alta expressiva de 17,99%, sendo o produto com maior aumento no mês.</li>
-                         <li>Banana, que subiu 6,97%, seguida pelo pão francês (1,55%), farinha de trigo (1,19%) e açúcar refinado (0,22%).</li>
-                       </ul>
-                       <p>Por outro lado, diversos produtos registraram queda nos preços, contribuindo para o recuo geral do indicador:</p>
-                       <ul>
-                         <li>O café em pó teve a maior redução, com queda de 7,09%.</li>
-                         <li>A carne caiu 4,99%, seguida pela manteiga (4,17%), leite (3,26%), feijão preto (3,14%), arroz tipo 1 (2,01%), óleo de soja (1,12%) e tomate (1,07%).</li>
-                       </ul>
-                       <p>Essas variações refletem fatores sazonais, logísticos e de mercado que influenciam diretamente o custo de vida da população local.</p>
-                       <p>Para mais informações sobre o indicador e outros dados econômicos regionais, acesse <a href='https://furb.br/cidadaniafinanceira' target='_blank'>furb.br/cidadaniafinanceira</a>.</p>
-                       <p>Contato: <a href='mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...'>Prof. Dr. Bruno Thiago Tomio – bttomio@furb.br</a></p>
-                     ")
-                   ),
-                   box(
-                     title = "Gráfico 1",
-                     status = "success",
-                     solidHeader = TRUE,
-                     width = 12,
-                     plotOutput("grafico_valor_cesta_blumenau")
-                   ),
-                   box(
-                     title = "Gráfico 2",
-                     status = "success",
-                     solidHeader = TRUE,
-                     width = 12,
-                     plotOutput("grafico_variacao_cesta_blumenau")
-                   ),
-                   box(
-                     title = "Gráfico 3",
-                     status = "success",
-                     solidHeader = TRUE,
-                     width = 12,
-                     plotOutput("grafico_produtos_blumenau")
-                   )
-                 )
-               )
-             )
-           )
-  ),
+#  tabPanel("Relatórios",
+#           fluidPage(
+#             titlePanel("Relatórios da Cesta Básica de Blumenau"),
+#             sidebarLayout(
+#               sidebarPanel(
+#                 selectInput("relatorio_mes_ano", "Selecione o Mês/Ano", 
+#                             choices = c("Selecione", "Agosto/2025", "Setembro/2025", "Outubro/2025"), 
+#                             selected = "Selecione")
+#               ),
+#               mainPanel(
+#                 conditionalPanel(
+#                   condition = "input.relatorio_mes_ano == 'Agosto/2025'",
+#                   div(class = "intro-text",
+#                       HTML("
+#                       <h3>Cesta Básica de Blumenau apresenta queda em agosto de 2025</h3>
+#                       <p>O Indicador da Cesta Básica de Blumenau, divulgado mensalmente pelo projeto Cidadania Financeira da FURB, registrou um valor de R$ 669,94 (ver Gráfico 1). Constata-se uma redução de 1,57% no custo total dos alimentos essenciais em agosto de 2025, em comparação com o mês anterior (ver Gráfico 2). Essa variação reflete o comportamento dos preços de 13 produtos que compõem a cesta básica, revelando oscilações significativas tanto de alta quanto de baixa.</p>
+#                       <p>Conforme Gráfico 3, entre os itens que apresentaram aumento de preço, destacam-se:</p>
+#                       <ul>
+#                         <li>Batata, com alta expressiva de 17,99%, sendo o produto com maior aumento no mês.</li>
+#                         <li>Banana, que subiu 6,97%, seguida pelo pão francês (1,55%), farinha de trigo (1,19%) e açúcar refinado (0,22%).</li>
+#                       </ul>
+#                       <p>Por outro lado, diversos produtos registraram queda nos preços, contribuindo para o recuo geral do indicador:</p>
+#                       <ul>
+#                         <li>O café em pó teve a maior redução, com queda de 7,09%.</li>
+#                         <li>A carne caiu 4,99%, seguida pela manteiga (4,17%), leite (3,26%), feijão preto (3,14%), arroz tipo 1 (2,01%), óleo de soja (1,12%) e tomate (1,07%).</li>
+#                       </ul>
+#                       <p>Essas variações refletem fatores sazonais, logísticos e de mercado que influenciam diretamente o custo de vida da população local.</p>
+#                       <p>Para mais informações sobre o indicador e outros dados econômicos regionais, acesse <a href='https://furb.br/cidadaniafinanceira' target='_blank'>furb.br/cidadaniafinanceira</a>.</p>
+#                       <p>Contato: <a href='mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...'>Prof. Dr. Bruno Thiago Tomio – bttomio@furb.br</a></p>
+#                     ")
+#                   ),
+#                   box(
+#                     title = "Gráfico 1",
+#                     status = "success",
+#                     solidHeader = TRUE,
+#                     width = 12,
+#                     plotOutput("grafico_valor_cesta_blumenau")
+#                   ),
+#                   box(
+#                     title = "Gráfico 2",
+#                     status = "success",
+#                     solidHeader = TRUE,
+#                     width = 12,
+#                     plotOutput("grafico_variacao_cesta_blumenau")
+#                   ),
+#                   box(
+#                     title = "Gráfico 3",
+#                     status = "success",
+#                     solidHeader = TRUE,
+#                     width = 12,
+#                     plotOutput("grafico_produtos_blumenau")
+#                   )
+#                 )
+#               )
+#             )
+#           )
+#  ),
   
   # Página de "Metodologia da Cesta"
   tabPanel(

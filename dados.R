@@ -170,6 +170,24 @@ Blumenau_VAR_PROD <- todos_meses_VAR_PROD %>%
   arrange(Ano, Mês) %>% 
   mutate(`Período` = dmy(paste("01", Mês, Ano)))
 
+# 11. Cálculo de média de preço de cada item
+df_Blumenau_MED <- df_Blumenau %>%
+  left_join(quantidade_data, by = "Produto") %>%
+  mutate(Mês = factor(Mês, levels = month_order)) %>%  
+  mutate(Total = `Preço médio`) %>% 
+  arrange(Ano, Mês) %>% 
+  group_by(Cidade, Ano, Mês, Produto) %>%
+  summarise(`Média (produto)` = mean(Total), .groups = 'drop') %>%
+  mutate(`Média (produto)` = round(`Média (produto)`, 2)) %>% 
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
 #### GASPAR #####
 
 # Define a função para criar a tabela de todos os meses
@@ -323,6 +341,24 @@ todos_meses_VAR_PROD <- expand.grid(Ano = anos,
 
 Gaspar_VAR_PROD <- todos_meses_VAR_PROD %>%
   left_join(Gaspar_VAR_PROD, by = c("Ano", "Mês", "Cidade", "Produto")) %>% 
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
+# 11. Cálculo de média de preço de cada item
+df_Gaspar_MED <- df_Gaspar %>%
+  left_join(quantidade_data, by = "Produto") %>%
+  mutate(Mês = factor(Mês, levels = month_order)) %>%  
+  mutate(Total = `Preço médio`) %>% 
+  arrange(Ano, Mês) %>% 
+  group_by(Cidade, Ano, Mês, Produto) %>%
+  summarise(`Média (produto)` = mean(Total), .groups = 'drop') %>%
+  mutate(`Média (produto)` = round(`Média (produto)`, 2)) %>% 
   arrange(Produto, Ano, Mês) %>% 
   group_by(Produto) %>%
   mutate(
@@ -494,6 +530,24 @@ Brusque_VAR_PROD <- todos_meses_VAR_PROD %>%
   arrange(Ano, Mês) %>% 
   mutate(`Período` = dmy(paste("01", Mês, Ano)))
 
+# 11. Cálculo de média de preço de cada item
+df_Brusque_MED <- df_Brusque %>%
+  left_join(quantidade_data, by = "Produto") %>%
+  mutate(Mês = factor(Mês, levels = month_order)) %>%  
+  mutate(Total = `Preço médio`) %>% 
+  arrange(Ano, Mês) %>% 
+  group_by(Cidade, Ano, Mês, Produto) %>%
+  summarise(`Média (produto)` = mean(Total), .groups = 'drop') %>%
+  mutate(`Média (produto)` = round(`Média (produto)`, 2)) %>% 
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
 #### BOMBINHAS #####
 
 # Define a função para criar a tabela de todos os meses
@@ -647,6 +701,24 @@ todos_meses_VAR_PROD <- expand.grid(Ano = anos,
 
 Bombinhas_VAR_PROD <- todos_meses_VAR_PROD %>%
   left_join(Bombinhas_VAR_PROD, by = c("Ano", "Mês", "Cidade", "Produto")) %>% 
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
+# 11. Cálculo de média de preço de cada item
+df_Bombinhas_MED <- df_Bombinhas %>%
+  left_join(quantidade_data, by = "Produto") %>%
+  mutate(Mês = factor(Mês, levels = month_order)) %>%  
+  mutate(Total = `Preço médio`) %>% 
+  arrange(Ano, Mês) %>% 
+  group_by(Cidade, Ano, Mês, Produto) %>%
+  summarise(`Média (produto)` = mean(Total), .groups = 'drop') %>%
+  mutate(`Média (produto)` = round(`Média (produto)`, 2)) %>% 
   arrange(Produto, Ano, Mês) %>% 
   group_by(Produto) %>%
   mutate(
@@ -818,6 +890,24 @@ Indaial_VAR_PROD <- todos_meses_VAR_PROD %>%
   arrange(Ano, Mês) %>% 
   mutate(`Período` = dmy(paste("01", Mês, Ano)))
 
+# 11. Cálculo de média de preço de cada item
+df_Indaial_MED <- df_Indaial %>%
+  left_join(quantidade_data, by = "Produto") %>%
+  mutate(Mês = factor(Mês, levels = month_order)) %>%  
+  mutate(Total = `Preço médio`) %>% 
+  arrange(Ano, Mês) %>% 
+  group_by(Cidade, Ano, Mês, Produto) %>%
+  summarise(`Média (produto)` = mean(Total), .groups = 'drop') %>%
+  mutate(`Média (produto)` = round(`Média (produto)`, 2)) %>% 
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
 #### JARAGUÁ DO SUL #####
 
 # Define a função para criar a tabela de todos os meses
@@ -971,6 +1061,24 @@ todos_meses_VAR_PROD <- expand.grid(Ano = anos,
 
 Jaragua_VAR_PROD <- todos_meses_VAR_PROD %>%
   left_join(Jaragua_VAR_PROD, by = c("Ano", "Mês", "Cidade", "Produto")) %>% 
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
+# 11. Cálculo de média de preço de cada item
+df_Jaragua_MED <- df_Jaragua %>%
+  left_join(quantidade_data, by = "Produto") %>%
+  mutate(Mês = factor(Mês, levels = month_order)) %>%  
+  mutate(Total = `Preço médio`) %>% 
+  arrange(Ano, Mês) %>% 
+  group_by(Cidade, Ano, Mês, Produto) %>%
+  summarise(`Média (produto)` = mean(Total), .groups = 'drop') %>%
+  mutate(`Média (produto)` = round(`Média (produto)`, 2)) %>% 
   arrange(Produto, Ano, Mês) %>% 
   group_by(Produto) %>%
   mutate(
@@ -1142,6 +1250,24 @@ Massaranduba_VAR_PROD <- todos_meses_VAR_PROD %>%
   arrange(Ano, Mês) %>% 
   mutate(`Período` = dmy(paste("01", Mês, Ano)))
 
+# 11. Cálculo de média de preço de cada item
+df_Massaranduba_MED <- df_Massaranduba %>%
+  left_join(quantidade_data, by = "Produto") %>%
+  mutate(Mês = factor(Mês, levels = month_order)) %>%  
+  mutate(Total = `Preço médio`) %>% 
+  arrange(Ano, Mês) %>% 
+  group_by(Cidade, Ano, Mês, Produto) %>%
+  summarise(`Média (produto)` = mean(Total), .groups = 'drop') %>%
+  mutate(`Média (produto)` = round(`Média (produto)`, 2)) %>% 
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
 #### NAVEGANTES #####
 
 # Define a função para criar a tabela de todos os meses
@@ -1295,6 +1421,24 @@ todos_meses_VAR_PROD <- expand.grid(Ano = anos,
 
 Navegantes_VAR_PROD <- todos_meses_VAR_PROD %>%
   left_join(Navegantes_VAR_PROD, by = c("Ano", "Mês", "Cidade", "Produto")) %>% 
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
+# 11. Cálculo de média de preço de cada item
+df_Navegantes_MED <- df_Navegantes %>%
+  left_join(quantidade_data, by = "Produto") %>%
+  mutate(Mês = factor(Mês, levels = month_order)) %>%  
+  mutate(Total = `Preço médio`) %>% 
+  arrange(Ano, Mês) %>% 
+  group_by(Cidade, Ano, Mês, Produto) %>%
+  summarise(`Média (produto)` = mean(Total), .groups = 'drop') %>%
+  mutate(`Média (produto)` = round(`Média (produto)`, 2)) %>% 
   arrange(Produto, Ano, Mês) %>% 
   group_by(Produto) %>%
   mutate(
@@ -1466,6 +1610,24 @@ Timbo_VAR_PROD <- todos_meses_VAR_PROD %>%
   arrange(Ano, Mês) %>% 
   mutate(`Período` = dmy(paste("01", Mês, Ano)))
 
+# 11. Cálculo de média de preço de cada item
+df_Timbo_MED <- df_Timbo %>%
+  left_join(quantidade_data, by = "Produto") %>%
+  mutate(Mês = factor(Mês, levels = month_order)) %>%  
+  mutate(Total = `Preço médio`) %>% 
+  arrange(Ano, Mês) %>% 
+  group_by(Cidade, Ano, Mês, Produto) %>%
+  summarise(`Média (produto)` = mean(Total), .groups = 'drop') %>%
+  mutate(`Média (produto)` = round(`Média (produto)`, 2)) %>% 
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
 # SAVE DATA ####
 
 CT <- rbind(Blumenau_CT, Gaspar_CT, Brusque_CT, Bombinhas_CT,
@@ -1480,7 +1642,14 @@ VAR_PROD <- rbind(Blumenau_VAR_PROD, Gaspar_VAR_PROD, Brusque_VAR_PROD, Bombinha
   mutate(Cidade = str_replace(Cidade, "Jaragua", "Jaraguá do Sul")) %>%
   mutate(Cidade = str_replace(Cidade, "Timbo", "Timbó"))
 
+PRECOS <- rbind(df_Blumenau_MED, df_Gaspar_MED, df_Brusque_MED, df_Bombinhas_MED,
+                df_Indaial_MED, df_Jaragua_MED, df_Massaranduba_MED,
+                df_Navegantes_MED, df_Timbo_MED) %>%
+  mutate(Cidade = str_replace(Cidade, "Jaragua", "Jaraguá do Sul")) %>%
+  mutate(Cidade = str_replace(Cidade, "Timbo", "Timbó"))
+
 library(writexl)
 
 write_xlsx(CT, path = "CT.xlsx")
 write_xlsx(VAR_PROD, path = "VAR_PROD.xlsx")
+write_xlsx(PRECOS, path = "PRECOS.xlsx")

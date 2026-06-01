@@ -15,25 +15,6 @@ Sys.setlocale("LC_TIME", "pt_BR.UTF-8")
 # Carregar os dados
 CT <- read_xlsx("CT.xlsx")
 VAR_PROD <- read_xlsx("VAR_PROD.xlsx")
-PRECOS  <- read_xlsx("PRECOS.xlsx")
-
-# Tabela de referência: embalagem, unidade e quantidade padrão de cada produto
-TABELA_REFERENCIA <- tibble::tribble(
-  ~Produto,           ~Embalagem, ~Unidade, ~Quantidade,
-  "Arroz tipo 1",     "Pacote",   "Kg",     1.000,
-  "Açúcar Refinado",  "Pacote",   "Kg",     1.000,
-  "Café em pó",       "Pacote",   "Kg",     0.500,
-  "Farinha de Trigo", "Pacote",   "Kg",     1.000,
-  "Feijão Preto",     "Pacote",   "Kg",     1.000,
-  "Manteiga",         "Pote",     "Kg",     0.500,
-  "Óleo de Soja",     "Garrafa",  "L",      0.900,
-  "Carne",            "Granel",   "Kg",     1.000,
-  "Pão Francês",      "Granel",   "Kg",     1.000,
-  "Batata",           "Granel",   "Kg",     1.000,
-  "Tomate",           "Granel",   "Kg",     1.000,
-  "Leite",            "Caixa",    "L",      1.000,
-  "Banana",           "Granel",   "Kg",     1.000
-)
 
 # Definir a interface do usuário
 ui <- navbarPage(
@@ -135,7 +116,7 @@ ui <- navbarPage(
                  div(class = "inicio-text",
                      "Escolha uma das opções no menu acima para visualizar os dados da cesta básica e dos produtos analisados."),
                  br(),
-                 div(class = "info-box", paste("Última atualização:", format(Sys.Date(), "%d/%m/%Y"))),
+                 div(class = "info-box", "Última atualização: 25/05/2026"),
                  br(),
                  img(src = "logo.jpg", class = "inicio-logo")
              )
@@ -215,105 +196,64 @@ ui <- navbarPage(
              )
            )),
   
-  # Página de "Preços da Cesta"
-  tabPanel("Preços da Cesta",
-           fluidPage(
-             tags$div(style = "font-size: 20px; font-weight: bold; color: #1a1a1a; margin-bottom: 20px;",
-                      "Para visualizar um gráfico, selecione: Produto e Cidade."),
-             sidebarLayout(
-               sidebarPanel(
-                 selectInput("preco_produto", "Selecione o Produto",
-                             choices = c("Todos", unique(PRECOS$Produto)), selected = "Todos"),
-                 selectInput("preco_cidade", "Selecione a Cidade",
-                             choices = c("Todos", unique(PRECOS$Cidade)), selected = "Todos"),
-                 selectInput("preco_mes", "Selecione o Mês",
-                             choices = c("Todos", "Janeiro", "Fevereiro", "Março", "Abril", "Maio",
-                                         "Junho", "Julho", "Agosto", "Setembro", "Outubro",
-                                         "Novembro", "Dezembro"), selected = "Todos"),
-                 selectInput("preco_ano", "Selecione o Ano",
-                             choices = c("Todos", unique(PRECOS$Ano)), selected = "Todos")
-               ),
-               mainPanel(
-                 box(
-                   title = "Tabela de Preços dos Produtos da Cesta",
-                   status = "primary",
-                   solidHeader = TRUE,
-                   width = 12,
-                   DTOutput("tabela_precos")
-                 ),
-                 br(),
-                 conditionalPanel(
-                   condition = "input.preco_produto != 'Todos' && input.preco_cidade != 'Todos'",
-                   box(
-                     title = "Gráfico de Preço Médio e Variação Mensal",
-                     status = "success",
-                     solidHeader = TRUE,
-                     width = 12,
-                     plotOutput("grafico_precos")
-                   )
-                 )
-               )
-             )
-           )),
-  
   # Página de "Relatórios"
-  #  tabPanel("Relatórios",
-  #           fluidPage(
-  #             titlePanel("Relatórios da Cesta Básica de Blumenau"),
-  #             sidebarLayout(
-  #               sidebarPanel(
-  #                 selectInput("relatorio_mes_ano", "Selecione o Mês/Ano", 
-  #                             choices = c("Selecione", "Agosto/2025", "Setembro/2025", "Outubro/2025"), 
-  #                             selected = "Selecione")
-  #               ),
-  #               mainPanel(
-  #                 conditionalPanel(
-  #                   condition = "input.relatorio_mes_ano == 'Agosto/2025'",
-  #                   div(class = "intro-text",
-  #                       HTML("
-  #                       <h3>Cesta Básica de Blumenau apresenta queda em agosto de 2025</h3>
-  #                       <p>O Indicador da Cesta Básica de Blumenau, divulgado mensalmente pelo projeto Cidadania Financeira da FURB, registrou um valor de R$ 669,94 (ver Gráfico 1). Constata-se uma redução de 1,57% no custo total dos alimentos essenciais em agosto de 2025, em comparação com o mês anterior (ver Gráfico 2). Essa variação reflete o comportamento dos preços de 13 produtos que compõem a cesta básica, revelando oscilações significativas tanto de alta quanto de baixa.</p>
-  #                       <p>Conforme Gráfico 3, entre os itens que apresentaram aumento de preço, destacam-se:</p>
-  #                       <ul>
-  #                         <li>Batata, com alta expressiva de 17,99%, sendo o produto com maior aumento no mês.</li>
-  #                         <li>Banana, que subiu 6,97%, seguida pelo pão francês (1,55%), farinha de trigo (1,19%) e açúcar refinado (0,22%).</li>
-  #                       </ul>
-  #                       <p>Por outro lado, diversos produtos registraram queda nos preços, contribuindo para o recuo geral do indicador:</p>
-  #                       <ul>
-  #                         <li>O café em pó teve a maior redução, com queda de 7,09%.</li>
-  #                         <li>A carne caiu 4,99%, seguida pela manteiga (4,17%), leite (3,26%), feijão preto (3,14%), arroz tipo 1 (2,01%), óleo de soja (1,12%) e tomate (1,07%).</li>
-  #                       </ul>
-  #                       <p>Essas variações refletem fatores sazonais, logísticos e de mercado que influenciam diretamente o custo de vida da população local.</p>
-  #                       <p>Para mais informações sobre o indicador e outros dados econômicos regionais, acesse <a href='https://furb.br/cidadaniafinanceira' target='_blank'>furb.br/cidadaniafinanceira</a>.</p>
-  #                       <p>Contato: <a href='mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...'>Prof. Dr. Bruno Thiago Tomio – bttomio@furb.br</a></p>
-  #                     ")
-  #                   ),
-  #                   box(
-  #                     title = "Gráfico 1",
-  #                     status = "success",
-  #                     solidHeader = TRUE,
-  #                     width = 12,
-  #                     plotOutput("grafico_valor_cesta_blumenau")
-  #                   ),
-  #                   box(
-  #                     title = "Gráfico 2",
-  #                     status = "success",
-  #                     solidHeader = TRUE,
-  #                     width = 12,
-  #                     plotOutput("grafico_variacao_cesta_blumenau")
-  #                   ),
-  #                   box(
-  #                     title = "Gráfico 3",
-  #                     status = "success",
-  #                     solidHeader = TRUE,
-  #                     width = 12,
-  #                     plotOutput("grafico_produtos_blumenau")
-  #                   )
-  #                 )
-  #               )
-  #             )
-  #           )
-  #  ),
+#  tabPanel("Relatórios",
+#           fluidPage(
+#             titlePanel("Relatórios da Cesta Básica de Blumenau"),
+#             sidebarLayout(
+#               sidebarPanel(
+#                 selectInput("relatorio_mes_ano", "Selecione o Mês/Ano", 
+#                             choices = c("Selecione", "Agosto/2025", "Setembro/2025", "Outubro/2025"), 
+#                             selected = "Selecione")
+#               ),
+#               mainPanel(
+#                 conditionalPanel(
+#                   condition = "input.relatorio_mes_ano == 'Agosto/2025'",
+#                   div(class = "intro-text",
+#                       HTML("
+#                       <h3>Cesta Básica de Blumenau apresenta queda em agosto de 2025</h3>
+#                       <p>O Indicador da Cesta Básica de Blumenau, divulgado mensalmente pelo projeto Cidadania Financeira da FURB, registrou um valor de R$ 669,94 (ver Gráfico 1). Constata-se uma redução de 1,57% no custo total dos alimentos essenciais em agosto de 2025, em comparação com o mês anterior (ver Gráfico 2). Essa variação reflete o comportamento dos preços de 13 produtos que compõem a cesta básica, revelando oscilações significativas tanto de alta quanto de baixa.</p>
+#                       <p>Conforme Gráfico 3, entre os itens que apresentaram aumento de preço, destacam-se:</p>
+#                       <ul>
+#                         <li>Batata, com alta expressiva de 17,99%, sendo o produto com maior aumento no mês.</li>
+#                         <li>Banana, que subiu 6,97%, seguida pelo pão francês (1,55%), farinha de trigo (1,19%) e açúcar refinado (0,22%).</li>
+#                       </ul>
+#                       <p>Por outro lado, diversos produtos registraram queda nos preços, contribuindo para o recuo geral do indicador:</p>
+#                       <ul>
+#                         <li>O café em pó teve a maior redução, com queda de 7,09%.</li>
+#                         <li>A carne caiu 4,99%, seguida pela manteiga (4,17%), leite (3,26%), feijão preto (3,14%), arroz tipo 1 (2,01%), óleo de soja (1,12%) e tomate (1,07%).</li>
+#                       </ul>
+#                       <p>Essas variações refletem fatores sazonais, logísticos e de mercado que influenciam diretamente o custo de vida da população local.</p>
+#                       <p>Para mais informações sobre o indicador e outros dados econômicos regionais, acesse <a href='https://furb.br/cidadaniafinanceira' target='_blank'>furb.br/cidadaniafinanceira</a>.</p>
+#                       <p>Contato: <a href='mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...'>Prof. Dr. Bruno Thiago Tomio – bttomio@furb.br</a></p>
+#                     ")
+#                   ),
+#                   box(
+#                     title = "Gráfico 1",
+#                     status = "success",
+#                     solidHeader = TRUE,
+#                     width = 12,
+#                     plotOutput("grafico_valor_cesta_blumenau")
+#                   ),
+#                   box(
+#                     title = "Gráfico 2",
+#                     status = "success",
+#                     solidHeader = TRUE,
+#                     width = 12,
+#                     plotOutput("grafico_variacao_cesta_blumenau")
+#                   ),
+#                   box(
+#                     title = "Gráfico 3",
+#                     status = "success",
+#                     solidHeader = TRUE,
+#                     width = 12,
+#                     plotOutput("grafico_produtos_blumenau")
+#                   )
+#                 )
+#               )
+#             )
+#           )
+#  ),
   
   # Página de "Metodologia da Cesta"
   tabPanel(
@@ -362,7 +302,7 @@ ui <- navbarPage(
       div(class = "inicio-container",
           div(class = "inicio-text",
               HTML("<strong>Prof. Dr. Bruno Thiago Tomio</strong><br>Coordenador/Criador do projeto<br>")),
-          
+
           div(class = "inicio-text",
               "Entre em contato conosco: ",
               tags$a(href = "mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "bttomio@furb.br")),
@@ -392,7 +332,6 @@ server <- function(input, output, session) {
   # Converter a coluna 'Período' para o formato Date
   CT$Período <- as.Date(CT$Período)
   VAR_PROD$Período <- as.Date(VAR_PROD$Período)
-  PRECOS$Período <- as.Date(PRECOS$Período)
   
   # Filtrar o último valor da cesta básica de Blumenau
   ultimo_valor_cesta <- reactive({
@@ -434,17 +373,6 @@ server <- function(input, output, session) {
         (input$cidade_produto == "Todos" | Cidade == input$cidade_produto),
         (input$mes_produto == "Todos" | Mês == input$mes_produto),
         (input$ano_produto == "Todos" | Ano == input$ano_produto)
-      )
-  })
-  
-  # Filtrar dados de Preços com base nas seleções do usuário
-  dados_precos_filtrados <- reactive({
-    PRECOS %>%
-      filter(
-        (input$preco_produto == "Todos" | Produto == input$preco_produto),
-        (input$preco_cidade  == "Todos" | Cidade  == input$preco_cidade),
-        (input$preco_mes     == "Todos" | Mês     == input$preco_mes),
-        (input$preco_ano     == "Todos" | Ano     == input$preco_ano)
       )
   })
   
@@ -493,72 +421,6 @@ server <- function(input, output, session) {
       formatRound(
         c("Média (produto)", "Variação (%)"),
         digits = 2
-      )
-  })
-  
-  # Renderizar a tabela de Preços
-  output$tabela_precos <- renderDT({
-    df <- dados_precos_filtrados() %>%
-      left_join(TABELA_REFERENCIA, by = "Produto") %>%
-      select(Cidade, Ano, Mês, Produto, Embalagem, Unidade, Quantidade,
-             `Média (produto)`, `Variação (%)`)
-    datatable(
-      df,
-      options = list(
-        scrollY = "300px",
-        scrollCollapse = TRUE,
-        paging = FALSE,
-        order = list(list(0, 'asc'))
-      )
-    ) %>%
-      formatStyle(
-        'Variação (%)',
-        color = styleInterval(0, c('red', 'black'))
-      ) %>%
-      formatRound(
-        c("Média (produto)", "Variação (%)"),
-        digits = 2
-      )
-  })
-  
-  # Renderizar o gráfico de Preço Médio e Variação Mensal
-  output$grafico_precos <- renderPlot({
-    dados_precos <- PRECOS %>%
-      filter(
-        Produto == input$preco_produto,
-        Cidade  == input$preco_cidade
-      ) %>%
-      arrange(Período)
-    
-    req(nrow(dados_precos) > 0)
-    
-    dados_precos$label_color <- ifelse(dados_precos$`Variação (%)` >= 0, "black", "red")
-    
-    ggplot(dados_precos, aes(x = Período, y = `Média (produto)`, group = Produto)) +
-      geom_line(colour = "blue") +
-      geom_point(colour = "blue") +
-      geom_text_repel(aes(label = paste0("R$ ", round(`Média (produto)`, 2)), color = label_color),
-                      size = 12/3,
-                      nudge_y = ifelse(dados_precos$`Variação (%)` >= 0, 0.2, -0.2),
-                      max.overlaps = 20,
-                      box.padding = 0.35,
-                      point.padding = 0.5,
-                      segment.size = 0.2,
-                      direction = "both",
-                      force = 1,
-                      show.legend = FALSE,
-                      color = dados_precos$label_color) +
-      labs(title = paste("Preço Médio —", input$preco_produto, "em", input$preco_cidade),
-           x = "Período", y = "Preço Médio (R$)") +
-      scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), breaks = scales::date_breaks("1 month")) +
-      theme_bw() +
-      theme(
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
-        axis.text.y = element_text(size = 12),
-        axis.title = element_text(size = 12),
-        plot.title = element_text(size = 12, face = "bold"),
-        legend.position = "none",
-        panel.border = element_rect(color = "black", size = 1)
       )
   })
   

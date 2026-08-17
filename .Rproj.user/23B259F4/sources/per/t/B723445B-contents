@@ -441,33 +441,34 @@ ui <- navbarPage(
   # Página de "Mídia"
   tabPanel(
     "Mídia",
-    fluidPage(
-      div(class = "inicio-container",
-          div(class = "inicio-text",
-              "Confira divulgações do projeto Cidadania Financeira:"),
-          br(),
-          div(class = "inicio-text",
-              tags$a(
-                href = "https://youtube.com/playlist?list=PLAL8vVk6Z3KDgc7DBFHEa8ddIM5dTgBh-&si=0QSsK_77HA874AxZ",
-                target = "_blank",
-                class = "media-link",
-                "Colunas no Boletim de Economia da FURB FM (107,1)"
-              )
-          ),
-          div(class = "inicio-text",
-              tags$a(
-                href = "https://globoplay.globo.com/v/13715431/",
-                target = "_blank",
-                class = "media-link",
-                "Participação ao vivo no Jornal do Almoço (Blumenau) - NSC TV [GloboPlay]"
-              )
-          ),
-          br(),
-          img(src = "logo.jpg", class = "inicio-logo")
-      )
+    div(class = "fundo-branco",
+        fluidPage(
+          div(class = "inicio-container",
+              div(class = "inicio-text",
+                  "Confira divulgações do projeto Cidadania Financeira:"),
+              br(),
+              div(class = "inicio-text",
+                  tags$a(
+                    href = "https://youtube.com/playlist?list=PLAL8vVk6Z3KDgc7DBFHEa8ddIM5dTgBh-&si=0QSsK_77HA874AxZ",
+                    target = "_blank",
+                    class = "media-link",
+                    "Colunas no Boletim de Economia da FURB FM (107,1)"
+                  )
+              ),
+              div(class = "inicio-text",
+                  tags$a(
+                    href = "https://globoplay.globo.com/v/13715431/",
+                    target = "_blank",
+                    class = "media-link",
+                    "Participação ao vivo no Jornal do Almoço (Blumenau) - NSC TV [GloboPlay]"
+                  )
+              ),
+              br(),
+              img(src = "logo.jpg", class = "inicio-logo")
+          )
+        )
     )
-  ),
-  
+  ),  
   # Página de "Equipe"
   tabPanel(
     "Equipe",
@@ -511,37 +512,39 @@ server <- function(input, output, session) {
   
   # Filtrar o último valor da cesta básica de Blumenau
   ultimo_valor_cesta <- reactive({
-    dados <- CT %>%
-      filter(Cidade == "Blumenau") %>%
-      arrange(desc(Período)) %>%
-      slice(1)
+    if (nrow(CT) == 0) return(NULL)
     
-    # Verificar se há dados e se as colunas necessárias existem
-    if (nrow(dados) == 0 || all(is.na(dados$Cesta)) || all(is.na(dados$`Variação (%)`))) {
-      return(NULL)
-    } else {
-      return(dados)
-    }
+    ultimo_periodo <- max(CT$Período, na.rm = TRUE)
+    
+    dados <- CT %>%
+      filter(Período == ultimo_periodo,
+             !is.na(Cesta),
+             !is.na(`Variação (%)`))
+    
+    if (nrow(dados) == 0) NULL else dados
   })
   
   # Cartão de destaque na página inicial com o valor mais recente da cesta básica (Blumenau)
   output$destaque_cesta_ui <- renderUI({
     dados <- ultimo_valor_cesta()
+    if (is.null(dados)) return(NULL)
     
-    if (is.null(dados)) {
-      return(NULL)
-    }
+    cards <- lapply(seq_len(nrow(dados)), function(i) {
+      linha <- dados[i, ]
+      variacao <- linha$`Variação (%)`
+      classe_variacao <- if (variacao >= 0) "variacao-positiva" else "variacao-negativa"
+      sinal <- if (variacao >= 0) "+" else ""
+      
+      div(class = "destaque-cesta",
+          div(class = "rotulo", paste("Cesta básica em", linha$Cidade, "—", format(linha$Período, "%B/%Y"))),
+          span(class = "valor", paste0("R$ ", scales::number(linha$Cesta, decimal.mark = ",", big.mark = ".", accuracy = 0.01))),
+          span(class = paste("valor-mono", classe_variacao), style = "margin-left: 12px; font-size: 18px;",
+               paste0(sinal, scales::number(variacao, decimal.mark = ",", accuracy = 0.01), "% no mês"))
+      )
+    })
     
-    variacao <- dados$`Variação (%)`
-    classe_variacao <- if (variacao >= 0) "variacao-positiva" else "variacao-negativa"
-    sinal <- if (variacao >= 0) "+" else ""
-    
-    div(class = "destaque-cesta",
-        div(class = "rotulo", paste("Cesta básica em Blumenau —", format(dados$Período, "%B/%Y"))),
-        span(class = "valor", paste0("R$ ", scales::number(dados$Cesta, decimal.mark = ",", big.mark = ".", accuracy = 0.01))),
-        span(class = paste("valor-mono", classe_variacao), style = "margin-left: 12px; font-size: 18px;",
-             paste0(sinal, scales::number(variacao, decimal.mark = ",", accuracy = 0.01), "% no mês"))
-    )
+    div(style = "display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;",
+        cards)
   })
   
   # Garantir que a coluna 'Mês' seja tratada como um fator ordenado cronologicamente

@@ -247,9 +247,9 @@ ui <- navbarPage(
   # Página inicial (Capa)
   tabPanel("Início",
            div(class = "fundo-branco",
-           fluidPage(
-             tags$head(
-               tags$style(HTML("
+               fluidPage(
+                 tags$head(
+                   tags$style(HTML("
         .inicio-container {
           text-align: center;
           padding: 40px 20px;
@@ -279,26 +279,26 @@ ui <- navbarPage(
           border-radius: 8px;
         }
       "))
-             ),
-             
-             div(class = "inicio-container",
-                 div(class = "inicio-title", "Bem-vindo(a)! Agradecemos muito sua visita!"),
-                 br(),
-                 br(),
-                 div(class = "inicio-text",
-                     HTML("Esta plataforma divulga os dados coletados pelo projeto de extensão <strong>Cidadania Financeira</strong> da 
-        <a href='https://www.furb.br' target='_blank'>Universidade Regional de Blumenau (FURB)</a>.")
                  ),
-                 div(class = "inicio-text",
-                     "Escolha uma das opções no menu acima para visualizar os dados da cesta básica e dos produtos analisados."),
-                 br(),
-                 uiOutput("destaque_cesta_ui"),
-                 br(),
-                 div(class = "info-box", paste("Última atualização:", format(Sys.Date(), "%d/%m/%Y"))),
-                 br(),
-                 img(src = "logo.jpg", class = "inicio-logo")
-             )
-           )
+                 
+                 div(class = "inicio-container",
+                     div(class = "inicio-title", "Bem-vindo(a)! Agradecemos muito sua visita!"),
+                     br(),
+                     br(),
+                     div(class = "inicio-text",
+                         HTML("Esta plataforma divulga os dados coletados pelo projeto de extensão <strong>Cidadania Financeira</strong> da 
+        <a href='https://www.furb.br' target='_blank'>Universidade Regional de Blumenau (FURB)</a>.")
+                     ),
+                     div(class = "inicio-text",
+                         "Escolha uma das opções no menu acima para visualizar os dados da cesta básica e dos produtos analisados."),
+                     br(),
+                     uiOutput("destaque_cesta_ui"),
+                     br(),
+                     div(class = "info-box", paste("Última atualização: 04/09/2026")), # MANUAL
+                     br(),
+                     img(src = "logo.jpg", class = "inicio-logo")
+                 )
+               )
            )
   ),
   
@@ -315,7 +315,7 @@ ui <- navbarPage(
                                    "Para visualizar um gráfico, selecione: Cidade."),
                           sidebarLayout(
                             sidebarPanel(
-                              selectInput("cidade", "Selecione a Cidade", choices = c("Todos", unique(CT$Cidade)), selected = "Todos"),
+                              selectInput("cidade", "Selecione a Cidade", choices = c("Todos", sort(unique(CT$Cidade))), selected = "Todos"),
                               selectInput("mes", "Selecione o Mês", choices = c("Todos", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", 
                                                                                 "Junho", "Julho", "Agosto", "Setembro", "Outubro", 
                                                                                 "Novembro", "Dezembro"), selected = "Todos"),
@@ -353,7 +353,7 @@ ui <- navbarPage(
                           sidebarLayout(
                             sidebarPanel(
                               selectInput("produto", "Selecione o Produto", choices = c("Todos", unique(VAR_PROD$Produto)), selected = "Todos"),
-                              selectInput("cidade_produto", "Selecione a Cidade", choices = c("Todos", unique(VAR_PROD$Cidade)), selected = "Todos"),
+                              selectInput("cidade_produto", "Selecione a Cidade", choices = c("Todos", sort(unique(VAR_PROD$Cidade))), selected = "Todos"),
                               selectInput("mes_produto", "Selecione o Mês", choices = c("Todos", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", 
                                                                                         "Junho", "Julho", "Agosto", "Setembro", "Outubro", 
                                                                                         "Novembro", "Dezembro"), selected = "Todos"),
@@ -392,8 +392,7 @@ ui <- navbarPage(
                             sidebarPanel(
                               selectInput("preco_produto", "Selecione o Produto",
                                           choices = c("Todos", unique(PRECOS$Produto)), selected = "Todos"),
-                              selectInput("preco_cidade", "Selecione a Cidade",
-                                          choices = c("Todos", unique(PRECOS$Cidade)), selected = "Todos"),
+                              selectInput("preco_cidade", "Selecione a Cidade", choices = c("Todos", sort(unique(PRECOS$Cidade))), selected = "Todos"),
                               selectInput("preco_mes", "Selecione o Mês",
                                           choices = c("Todos", "Janeiro", "Fevereiro", "Março", "Abril", "Maio",
                                                       "Junho", "Julho", "Agosto", "Setembro", "Outubro",
@@ -473,23 +472,23 @@ ui <- navbarPage(
   tabPanel(
     "Equipe",
     div(class = "fundo-branco",
-    fluidPage(
-      div(class = "inicio-container",
-          div(class = "inicio-text",
-              HTML("<strong>Prof. Dr. Bruno Thiago Tomio</strong><br>Coordenador/Criador do projeto<br>")),
-          
-          div(class = "inicio-text",
-              "Entre em contato conosco: ",
-              tags$a(href = "mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "bttomio@furb.br")),
-          div(class = "inicio-text",
-              "Estamos sempre à disposição!"),
-          br(),
-          div(class = "inicio-text",
-              tags$a(href = "https://www.furb.br", target = "_blank",
-                     img(src = "logo.jpg", class = "inicio-logo"))
+        fluidPage(
+          div(class = "inicio-container",
+              div(class = "inicio-text",
+                  HTML("<strong>Prof. Dr. Bruno Thiago Tomio</strong><br>Coordenador/Criador do projeto<br>")),
+              
+              div(class = "inicio-text",
+                  "Entre em contato conosco: ",
+                  tags$a(href = "mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "bttomio@furb.br")),
+              div(class = "inicio-text",
+                  "Estamos sempre à disposição!"),
+              br(),
+              div(class = "inicio-text",
+                  tags$a(href = "https://www.furb.br", target = "_blank",
+                         img(src = "logo.jpg", class = "inicio-logo"))
+              )
           )
-      )
-    )
+        )
     )
   )
 )
@@ -606,7 +605,9 @@ server <- function(input, output, session) {
       ) %>%
       formatRound(
         c("Cesta", "Variação (%)"),
-        digits = 2
+        digits = 2,
+        mark = ".",
+        dec.mark = ","
       )
   })
   
@@ -630,7 +631,9 @@ server <- function(input, output, session) {
       ) %>%
       formatRound(
         c("Média (produto)", "Variação (%)"),
-        digits = 2
+        digits = 2,
+        mark = ".",
+        dec.mark = ","
       )
   })
   
@@ -655,7 +658,9 @@ server <- function(input, output, session) {
       ) %>%
       formatRound(
         c("Média (produto)", "Variação (%)"),
-        digits = 2
+        digits = 2,
+        mark = ".",
+        dec.mark = ","
       )
   })
   
@@ -678,7 +683,7 @@ server <- function(input, output, session) {
     ggplot(dados_precos, aes(x = Período, y = `Média (produto)`, group = Produto)) +
       geom_segment(aes(xend = xend, yend = yend, color = lead(label_color)), linewidth = 0.9, na.rm = TRUE) +
       geom_point(aes(color = label_color), size = 2) +
-      geom_text_repel(aes(label = paste0("R$ ", round(`Média (produto)`, 2))),
+      geom_text_repel(aes(label = paste0("R$ ", scales::number(`Média (produto)`, decimal.mark = ",", accuracy = 0.01))),
                       size = 12/3,
                       nudge_y = ifelse(dados_precos$`Variação (%)` >= 0, 0.2, -0.2),
                       max.overlaps = 20,
@@ -724,7 +729,7 @@ server <- function(input, output, session) {
     ggplot(dados, aes(x = Período, y = `Variação (%)`, group = Cidade)) +
       geom_segment(aes(xend = xend, yend = yend, color = lead(label_color)), linewidth = 0.9, na.rm = TRUE) +
       geom_point(aes(color = label_color), size = 2) +
-      geom_text_repel(aes(label = paste0(round(`Variação (%)`, 2), "%")),
+      geom_text_repel(aes(label = paste0(scales::number(`Variação (%)`, decimal.mark = ",", accuracy = 0.01), "%")),
                       size = 12/3,
                       nudge_y = ifelse(dados$`Variação (%)` >= 0, 0.2, -0.2),
                       max.overlaps = 20,
@@ -773,7 +778,7 @@ server <- function(input, output, session) {
     ggplot(dados_produtos, aes(x = Período, y = `Variação (%)`, group = Produto)) +
       geom_segment(aes(xend = xend, yend = yend, color = lead(label_color)), linewidth = 0.9, na.rm = TRUE) +
       geom_point(aes(color = label_color), size = 2) +
-      geom_text_repel(aes(label = paste0(round(`Variação (%)`, 2), "%")),
+      geom_text_repel(aes(label = paste0(scales::number(`Variação (%)`, decimal.mark = ",", accuracy = 0.01), "%")),
                       size = 12/3,
                       nudge_y = ifelse(dados_produtos$`Variação (%)` >= 0, 0.2, -0.2),
                       max.overlaps = 20,

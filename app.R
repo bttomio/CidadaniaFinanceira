@@ -175,7 +175,7 @@ ui <- navbarPage(
         border-radius: 12px;
         padding: 18px 28px;
         box-shadow: 0 4px 14px rgba(27,58,75,0.10);
-        text-align: left;
+        text-align: center;
         margin-bottom: 10px;
       }
       .destaque-cesta .rotulo {
@@ -193,6 +193,23 @@ ui <- navbarPage(
       }
       .destaque-cesta .variacao-positiva { color: ", COR_NEGATIVA, "; font-weight: 600; }
       .destaque-cesta .variacao-negativa { color: ", COR_POSITIVA, "; font-weight: 600; }
+      .destaque-cesta .rotulo-cidade {
+        font-size: 18px;
+        font-weight: 700;
+        color: ", COR_PRIMARIA, ";
+        margin-bottom: 2px;
+      }
+      .destaque-cesta .rotulo-periodo {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 8px;
+      }
+      .destaque-cesta .valor-mono {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 18px;
+        display: block;
+        margin-top: 4px;
+      }
 
       /* ---------- Elementos diversos ---------- */
       .youtube-container {
@@ -294,7 +311,7 @@ ui <- navbarPage(
                      br(),
                      uiOutput("destaque_cesta_ui"),
                      br(),
-                     div(class = "info-box", paste("Última atualização: 04/09/2026")), # MANUAL
+                     div(class = "info-box", paste("Última atualização: 09/09/2026")), # MANUAL
                      br(),
                      img(src = "logo.jpg", class = "inicio-logo")
                  )
@@ -535,10 +552,12 @@ server <- function(input, output, session) {
       sinal <- if (variacao >= 0) "+" else ""
       
       div(class = "destaque-cesta",
-          div(class = "rotulo", paste("Cesta básica em", linha$Cidade, "—", format(linha$Período, "%B/%Y"))),
-          span(class = "valor", paste0("R$ ", scales::number(linha$Cesta, decimal.mark = ",", big.mark = ".", accuracy = 0.01))),
-          span(class = paste("valor-mono", classe_variacao), style = "margin-left: 12px; font-size: 18px;",
-               paste0(sinal, scales::number(variacao, decimal.mark = ",", accuracy = 0.01), "% no mês"))
+          div(class = "rotulo", "Cesta básica em"),
+          div(class = "rotulo-cidade", linha$Cidade),
+          div(class = "rotulo-periodo", format(linha$Período, "%B/%Y")),
+          div(class = "valor", paste0("R$ ", scales::number(linha$Cesta, decimal.mark = ",", big.mark = ".", accuracy = 0.01))),
+          div(class = paste("valor-mono", classe_variacao),
+              paste0(sinal, scales::number(variacao, decimal.mark = ",", accuracy = 0.01), "% no mês"))
       )
     })
     

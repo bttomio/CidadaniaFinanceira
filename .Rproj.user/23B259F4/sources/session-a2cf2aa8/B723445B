@@ -1,26 +1,26 @@
 {
-    "id": "2DA5C28A",
-    "path": "~/GitHub/CidadaniaFinanceira/dados.R",
-    "project_path": "dados.R",
+    "id": "B723445B",
+    "path": "~/GitHub/CidadaniaFinanceira/app.R",
+    "project_path": "app.R",
     "type": "r_source",
-    "hash": "370756123",
+    "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1778097109493.0,
+    "created": 1780352682827.0,
     "source_on_save": false,
-    "relative_order": 2,
+    "relative_order": 5,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "1853,0",
-        "scrollLine": "1837"
+        "cursorPosition": "220,28",
+        "scrollLine": "208"
     },
     "folds": "",
-    "lastKnownWriteTime": 1788554752,
+    "lastKnownWriteTime": 1788988298,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1788554752747,
+    "last_content_update": 1788988298545,
     "read_only": false,
     "read_only_alternatives": []
 }

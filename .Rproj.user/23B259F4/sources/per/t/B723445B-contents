@@ -9,6 +9,7 @@ library(ggrepel)
 library(scales)# Carregar o pacote lubridate, se necessário
 library(lubridate)
 library(bslib) # Tema visual moderno (cores, fontes, componentes Bootstrap 5)
+library(stringi)
 
 # ---------------------------------------------------------------------------
 # Paleta e tipografia da identidade visual "Cidadania Financeira"
@@ -61,6 +62,27 @@ TABELA_REFERENCIA <- tibble::tribble(
   "Tomate",           "Granel",   "Kg",     1.000,
   "Leite",            "Caixa",    "L",      1.000,
   "Banana",           "Granel",   "Kg",     1.000
+)
+
+# Vetor com os nomes dos estudantes colaboradores(as)
+# Basta adicionar novos nomes aqui — a lista é ordenada automaticamente
+ESTUDANTES_COLABORADORES <- c(
+  "Adriane Cristini Migliorini",
+  "Bruna Laís Knopf",
+  "Carlos Teixeira Junior",
+  "Dyan Paolo de Souza",
+  "Enzo Duarte Crozeta",
+  "Enzo Morales Poli",
+  "Ernesto Celva Neto",
+  "Fernando José Tavares Poletti",
+  "Gabriela Cristina Froehlich",
+  "Kailane Karolina Duarte",
+  "Kamilly Roberta Viola",
+  "Lara Helen Theiss",
+  "Luan Gabriel Constantino Stein",
+  "Luana Gnewuch",
+  "Maria Eduarda Thomaz",
+  "Maria Eduarda Viana Gonçalves"
 )
 
 # Definir a interface do usuário
@@ -311,7 +333,7 @@ ui <- navbarPage(
                      br(),
                      uiOutput("destaque_cesta_ui"),
                      br(),
-                     div(class = "info-box", paste("Última atualização: 09/09/2026")), # MANUAL
+                     div(class = "info-box", paste("Última atualização: 10/09/2026")), # MANUAL
                      br(),
                      img(src = "logo.jpg", class = "inicio-logo")
                  )
@@ -493,6 +515,20 @@ ui <- navbarPage(
           div(class = "inicio-container",
               div(class = "inicio-text",
                   HTML("<strong>Prof. Dr. Bruno Thiago Tomio</strong><br>Coordenador/Criador do projeto<br>")),
+              
+              br(),
+              
+              div(class = "inicio-text",
+                  HTML(paste0(
+                    "<strong>Estudantes Colaboradores(as)</strong><br>",
+                    paste(
+                      stri_sort(ESTUDANTES_COLABORADORES, locale = "pt_BR"),
+                      collapse = "<br>"
+                    )
+                  ))
+              ),
+              
+              br(),
               
               div(class = "inicio-text",
                   "Entre em contato conosco: ",

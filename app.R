@@ -10,6 +10,7 @@ library(scales)# Carregar o pacote lubridate, se necessário
 library(lubridate)
 library(bslib) # Tema visual moderno (cores, fontes, componentes Bootstrap 5)
 library(stringi)
+library(writexl)
 
 # ---------------------------------------------------------------------------
 # Paleta e tipografia da identidade visual "Cidadania Financeira"
@@ -42,9 +43,9 @@ meu_tema <- bs_theme(
 Sys.setlocale("LC_TIME", "pt_BR.UTF-8")
 
 # Carregar os dados
-CT <- read_xlsx("CT.xlsx")
-VAR_PROD <- read_xlsx("VAR_PROD.xlsx")
-PRECOS  <- read_xlsx("PRECOS.xlsx")
+CT       <- readRDS("CT.rds")
+VAR_PROD <- readRDS("VAR_PROD.rds")
+PRECOS   <- readRDS("PRECOS.rds")
 
 # Tabela de referência: embalagem, unidade e quantidade padrão de cada produto
 TABELA_REFERENCIA <- tibble::tribble(
@@ -257,7 +258,7 @@ ui <- navbarPage(
       }
       .media-link:hover {
         text-decoration: underline;
-        color: ", COR_PRIMARIA, ";
+        color: ", COR_DESTAQUE, ";
       }
       .intro-text {
         font-size: 16px;
@@ -333,7 +334,7 @@ ui <- navbarPage(
                      br(),
                      uiOutput("destaque_cesta_ui"),
                      br(),
-                     div(class = "info-box", paste("Última atualização: 10/09/2026")), # MANUAL
+                     div(class = "info-box", paste("Última atualização: 15/09/2026")), # MANUAL
                      br(),
                      img(src = "logo.jpg", class = "inicio-logo")
                  )
@@ -378,8 +379,7 @@ ui <- navbarPage(
                                   width = 12,
                                   plotOutput("grafico_cesta")
                                 )
-                              )
-                            )
+                              )                            )
                           )
                         )
                ),
@@ -471,6 +471,50 @@ ui <- navbarPage(
                           h4("Composição da Cesta Básica - Região 3, que inclui Santa Catarina"),
                           tableOutput("regiao3_table")
                         )
+               ),
+               # Sub-aba: Dados
+               tabPanel("Dados",
+                        fluidPage(
+                          br(),
+                          tags$div(style = "font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 20px 0;",
+                                   "Baixe as bases de dados completas do projeto Cidadania Financeira."),
+                          
+                          fluidRow(
+                            column(4,
+                                   div(class = "destaque-cesta",
+                                       div(class = "rotulo", "Cesta Básica"),
+                                       br(),
+                                       p("Valor mensal da cesta básica por cidade."),
+                                       br(),
+                                       downloadButton("download_CT_xlsx", ".xlsx"),
+                                       br(), br(),
+                                       downloadButton("download_CT_rds",  ".rds")
+                                   )
+                            ),
+                            column(4,
+                                   div(class = "destaque-cesta",
+                                       div(class = "rotulo", "Variação de Produtos"),
+                                       br(),
+                                       p("Variação percentual mensal por produto e cidade."),
+                                       br(),
+                                       downloadButton("download_VAR_xlsx", ".xlsx"),
+                                       br(), br(),
+                                       downloadButton("download_VAR_rds",  ".rds")
+                                   )
+                            ),
+                            column(4,
+                                   div(class = "destaque-cesta",
+                                       div(class = "rotulo", "Preços"),
+                                       br(),
+                                       p("Preço médio mensal por produto e cidade."),
+                                       br(),
+                                       downloadButton("download_PRECOS_xlsx", ".xlsx"),
+                                       br(), br(),
+                                       downloadButton("download_PRECOS_rds",  ".rds")
+                                   )
+                            )
+                          )
+                        )
                )
              )
            )
@@ -549,6 +593,39 @@ ui <- navbarPage(
 # Definir a lógica do servidor
 server <- function(input, output, session) {
   
+  #Baixar os dados em formato Excel
+  library(writexl)
+  
+  # Cesta Básica
+  output$download_CT_xlsx <- downloadHandler(
+    filename = function() paste0("cesta_basica_", Sys.Date(), ".xlsx"),
+    content  = function(file) write_xlsx(CT, file)
+  )
+  output$download_CT_rds <- downloadHandler(
+    filename = function() paste0("cesta_basica_", Sys.Date(), ".rds"),
+    content  = function(file) saveRDS(CT, file)
+  )
+  
+  # Variação de Produtos
+  output$download_VAR_xlsx <- downloadHandler(
+    filename = function() paste0("variacao_produtos_", Sys.Date(), ".xlsx"),
+    content  = function(file) write_xlsx(VAR_PROD, file)
+  )
+  output$download_VAR_rds <- downloadHandler(
+    filename = function() paste0("variacao_produtos_", Sys.Date(), ".rds"),
+    content  = function(file) saveRDS(VAR_PROD, file)
+  )
+  
+  # Preços
+  output$download_PRECOS_xlsx <- downloadHandler(
+    filename = function() paste0("precos_", Sys.Date(), ".xlsx"),
+    content  = function(file) write_xlsx(PRECOS, file)
+  )
+  output$download_PRECOS_rds <- downloadHandler(
+    filename = function() paste0("precos_", Sys.Date(), ".rds"),
+    content  = function(file) saveRDS(PRECOS, file)
+  )
+  
   # Tabela com os itens da cesta
   output$regiao3_table <- renderTable({
     data.frame(
@@ -571,7 +648,8 @@ server <- function(input, output, session) {
     dados <- CT %>%
       filter(Período == ultimo_periodo,
              !is.na(Cesta),
-             !is.na(`Variação (%)`))
+             !is.na(`Variação (%)`)) |> 
+      arrange(Cidade)
     
     if (nrow(dados) == 0) NULL else dados
   })

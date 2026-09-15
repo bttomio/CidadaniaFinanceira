@@ -1827,25 +1827,207 @@ df_Balneario_MED <- Balneario_MED_PROD %>%
   arrange(Ano, Mês) %>% 
   mutate(`Período` = dmy(paste("01", Mês, Ano)))
 
+#### POMERODE #####
+
+# Define a função para criar a tabela de todos os meses
+criar_todos_meses <- function(anos, meses, data_atual) {
+  meses_num <- 1:12
+  names(meses_num) <- meses
+  
+  expand.grid(Ano = anos, Mês = meses, Cidade = unique(Pomerode_CT$Cidade)) %>%
+    mutate(Mês_num = meses_num[Mês],  
+           Data = as.Date(paste(Ano, Mês_num, "01", sep = "-"))) %>%  
+    filter(Data <= data_atual) %>%  
+    select(-Data, -Mês_num)  
+}
+
+# 1. Definir as variáveis
+data_atual <- Sys.Date()
+meses <- month_order
+
+# 2. Lê os arquivos de Excel
+file_paths <- list.files(full.names = TRUE, path = "data/Pomerode", pattern='*.xlsx')
+file_name <- basename(file_paths)
+file_name_parts <- strsplit(file_name, " - ")
+
+# Função para processar os dados
+process_tibble <- function(tibble) {
+  col_name <- names(tibble)[5]
+  col_name_2 <- names(tibble)[2]
+  
+  # Dividir o caminho em partes
+  parts <- str_split(col_name, "/")[[1]]
+  
+  # Criar a tabela com colunas adicionais, removendo espaços do Ano
+  new_df <- tibble(
+    `Mês` = rep(parts[1], nrow(tibble)),
+    Ano = rep(trimws(parts[2]), nrow(tibble)),  # Remove espaços do Ano
+    Cidade = rep('Pomerode', nrow(tibble)),
+    Mercado = rep(col_name_2, nrow(tibble))
+  )
+  
+  # Combinar as novas colunas
+  processed_tibble <- bind_cols(tibble, new_df) %>%
+    select(-c(2:8)) %>%
+    rename(
+      Produto = MERCADO,
+      `Preço médio` = ...9
+    ) %>%
+    mutate_at(vars(2), as.numeric) %>%
+    filter(!is.na(`Preço médio`)) %>%
+    mutate(`Preço médio` = round(`Preço médio`, 2)) %>%
+    mutate(Ano = trimws(Ano))  # Garante que Ano esteja sem espaços
+  
+  return(processed_tibble)
+}
+
+# 3. Processamento dos dados
+data_list <- list()
+for (i in seq_along(file_paths)) {
+  # Extrair informações do nome do arquivo
+  month_year <- file_name_parts[[i]][1]
+  name_with_extension <- file_name_parts[[i]][2]
+  name <- gsub(".xlsx", "", name_with_extension)
+  
+  # Extrair mês e ano, removendo espaços
+  month_year_parts <- strsplit(trimws(month_year), " ")[[1]]
+  month <- month_year_parts[1]
+  year <- trimws(month_year_parts[2])  # Remove espaços do ano
+  
+  # Nome da lista
+  list_name <- paste(name, month, year, sep = ".")
+  
+  # Ler o arquivo Excel
+  data <- read_excel(file_paths[i])
+  
+  # Adicionar à lista de dados
+  data_list[[list_name]] <- data
+}
+
+# Processar os dados
+processed_list <- map(data_list, process_tibble)
+df_Pomerode <- do.call(rbind.data.frame, processed_list)
+
+# 4. Limpeza e transformação final
+df_Pomerode <- df_Pomerode %>%
+  mutate(Mercado = str_to_title(Mercado)) %>%
+  mutate(Mercado = gsub("Komprao", "Komprão", Mercado)) %>%
+  mutate(Produto = gsub("Açucar Refinado", "Açúcar Refinado", Produto))
+
+# 5. Quantidade de produtos
+quantidade_data <- tibble::tibble(
+  Produto = c("Arroz tipo 1", "Açúcar Refinado", "Café em pó", "Farinha de Trigo", "Feijão Preto", 
+              "Manteiga", "Óleo de Soja", "Carne", "Pão Francês", "Batata", "Tomate", "Leite", "Banana"),
+  Quantidade = c(3, 3, 0.6, 1.5, 4.5, 0.75, 0.9, 6.6, 6, 6, 9, 7.5, 1.2)
+)
+
+# 6. Juntar com as quantidades e calcular o total
+df_Pomerode_CT <- df_Pomerode %>%
+  left_join(quantidade_data, by = "Produto") %>%
+  mutate(Total = `Preço médio` * Quantidade) %>% 
+  mutate(Mês = factor(Mês, levels = month_order)) %>%  
+  arrange(Ano, Mês)
+
+# 7. Calcular o preço médio de cada produto (excluindo o menor e maior valor entre os mercados)
+Pomerode_MED_PROD <- df_Pomerode_CT %>%
+  mutate(Ano = trimws(Ano)) %>%  # Remove espaços antes do cálculo
+  group_by(Cidade, Ano, Mês, Produto) %>%
+  mutate(
+    n_obs = n(),
+    min_value = min(`Preço médio`),
+    max_value = max(`Preço médio`),
+    diff_rel = ifelse(max_value == 0, 0, (max_value - min_value) / max_value),
+    rank_asc  = rank(`Preço médio`,  ties.method = "first"),
+    rank_desc = rank(-`Preço médio`, ties.method = "first")) %>%
+  filter(
+    n_obs < 3 | diff_rel <= 0.3 | (rank_asc != 1 & rank_desc != 1)) %>%
+  select(-n_obs, -min_value, -max_value, -diff_rel, -rank_asc, -rank_desc) %>%
+  summarise(
+    `Média (produto)` = mean(`Preço médio`),
+    Quantidade = first(Quantidade),
+    .groups = 'drop'
+  ) %>%
+  mutate(Total = `Média (produto)` * Quantidade)
+
+# 7b. Calcular a cesta da cidade somando o total (já tratado) de cada produto
+Pomerode_CT <- Pomerode_MED_PROD %>%
+  group_by(Cidade, Ano, Mês) %>%
+  summarise(Cesta = sum(Total, na.rm = TRUE), .groups = 'drop')
+
+# Redefinir 'anos' com base nos dados processados
+anos <- unique(trimws(Pomerode_CT$Ano))
+
+# 8. Expansão para incluir todos os meses
+todos_meses <- criar_todos_meses(anos, meses, data_atual)
+
+Pomerode_CT <- full_join(Pomerode_CT, todos_meses, by = c("Ano", "Mês", "Cidade")) %>%
+  distinct(Ano, Mês, Cidade, .keep_all = TRUE) %>%
+  mutate(Mês = factor(Mês, levels = month_order)) %>%
+  arrange(Ano, Mês) %>%
+  mutate(
+    `Variação (%)` = (Cesta - lag(Cesta)) / lag(Cesta) * 100
+  ) %>% 
+  mutate(Cesta = round(Cesta, 2)) %>% 
+  mutate(`Variação (%)` = round(`Variação (%)`, 2)) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
+# 9. Variação percentual de cada produto (reaproveitando a média já tratada no passo 7)
+Pomerode_VAR_PROD <- Pomerode_MED_PROD %>%
+  select(Cidade, Ano, Mês, Produto, `Média (produto)` = Total)
+
+# 10. Expansão para incluir todos os meses para o VAR_PROD
+meses_num <- 1:12
+todos_meses_VAR_PROD <- expand.grid(Ano = anos, 
+                                    Mês = meses, 
+                                    Cidade = unique(Pomerode_VAR_PROD$Cidade),
+                                    Produto = unique(Pomerode_VAR_PROD$Produto)) %>%
+  mutate(Mês_num = meses_num[Mês],  
+         Data = as.Date(paste(Ano, Mês_num, "01", sep = "-"))) %>%  
+  filter(Data <= data_atual) %>%  
+  select(-Data, -Mês_num)  
+
+Pomerode_VAR_PROD <- todos_meses_VAR_PROD %>%
+  left_join(Pomerode_VAR_PROD, by = c("Ano", "Mês", "Cidade", "Produto")) %>% 
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
+# 11. Cálculo de média de preço de cada item (reaproveitando o valor já tratado no passo 7)
+df_Pomerode_MED <- Pomerode_MED_PROD %>%
+  select(Cidade, Ano, Mês, Produto, `Média (produto)`) %>%
+  arrange(Produto, Ano, Mês) %>% 
+  group_by(Produto) %>%
+  mutate(
+    `Variação (%)` = round((`Média (produto)` - lag(`Média (produto)`)) / lag(`Média (produto)`) * 100, 2)
+  ) %>%
+  ungroup() %>% 
+  arrange(Ano, Mês) %>% 
+  mutate(`Período` = dmy(paste("01", Mês, Ano)))
+
 # SAVE DATA ####
 
 CT <- rbind(Blumenau_CT, Gaspar_CT, Brusque_CT, Bombinhas_CT,
             Indaial_CT, Jaragua_CT, Massaranduba_CT,
-            Navegantes_CT, Timbo_CT, Balneario_CT) %>%
+            Navegantes_CT, Timbo_CT, Balneario_CT, Pomerode_CT) %>%
   mutate(Cidade = str_replace(Cidade, "Jaragua", "Jaraguá do Sul")) %>%
   mutate(Cidade = str_replace(Cidade, "Timbo", "Timbó")) %>%
   mutate(Cidade = str_replace(Cidade, "Balneario", "Balneário Camboriú"))
 
 VAR_PROD <- rbind(Blumenau_VAR_PROD, Gaspar_VAR_PROD, Brusque_VAR_PROD, Bombinhas_VAR_PROD,
                   Indaial_VAR_PROD, Jaragua_VAR_PROD, Massaranduba_VAR_PROD,
-                  Navegantes_VAR_PROD, Timbo_VAR_PROD, Balneario_VAR_PROD) %>%
+                  Navegantes_VAR_PROD, Timbo_VAR_PROD, Balneario_VAR_PROD, Pomerode_VAR_PROD) %>%
   mutate(Cidade = str_replace(Cidade, "Jaragua", "Jaraguá do Sul")) %>%
   mutate(Cidade = str_replace(Cidade, "Timbo", "Timbó")) %>%
   mutate(Cidade = str_replace(Cidade, "Balneario", "Balneário Camboriú"))
 
 PRECOS <- rbind(df_Blumenau_MED, df_Gaspar_MED, df_Brusque_MED, df_Bombinhas_MED,
                 df_Indaial_MED, df_Jaragua_MED, df_Massaranduba_MED,
-                df_Navegantes_MED, df_Timbo_MED, df_Balneario_MED) %>%
+                df_Navegantes_MED, df_Timbo_MED, df_Balneario_MED, df_Pomerode_MED) %>%
   mutate(Cidade = str_replace(Cidade, "Jaragua", "Jaraguá do Sul")) %>%
   mutate(Cidade = str_replace(Cidade, "Timbo", "Timbó")) %>%
   mutate(Cidade = str_replace(Cidade, "Balneario", "Balneário Camboriú"))
@@ -1855,3 +2037,8 @@ library(writexl)
 write_xlsx(CT, path = "CT.xlsx")
 write_xlsx(VAR_PROD, path = "VAR_PROD.xlsx")
 write_xlsx(PRECOS, path = "PRECOS.xlsx")
+
+# Mais eficiente que arquivo de Excel
+saveRDS(CT,       "CT.rds")
+saveRDS(VAR_PROD, "VAR_PROD.rds")
+saveRDS(PRECOS,   "PRECOS.rds")

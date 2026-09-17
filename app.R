@@ -13,6 +13,30 @@ library(stringi)
 library(writexl)
 
 # ---------------------------------------------------------------------------
+# Configuração do projeto
+# ---------------------------------------------------------------------------
+# Edite estas variáveis para adaptar o painel a outra instituição, cidade(s)
+# ou equipe, sem precisar procurar strings espalhadas pelo arquivo.
+PROJETO_NOME       <- "Cidadania Financeira [FURB]"
+PROJETO_URL        <- "https://bttomio.shinyapps.io/cidadaniafinanceira/"
+INSTITUICAO_NOME   <- "Universidade Regional de Blumenau (FURB)"
+INSTITUICAO_URL    <- "https://www.furb.br"
+CONTATO_EMAIL      <- "bttomio@furb.br"
+LOGO_PATH          <- "logo.jpg"  # deve estar na pasta www/
+YOUTUBE_PLAYLIST   <- "https://youtube.com/playlist?list=PLAL8vVk6Z3KDgc7DBFHEa8ddIM5dTgBh-&si=0QSsK_77HA874AxZ"
+GLOBOPLAY_URL      <- "https://globoplay.globo.com/v/13715431/"
+
+# Nomes dos meses em português, usados para exibição sem depender da
+# configuração de locale do sistema operacional (mais portável entre
+# Windows/Mac/Linux e entre serviços de hospedagem).
+NOMES_MES_PT <- c("Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+
+formatar_mes_ano <- function(data) {
+  paste(NOMES_MES_PT[as.integer(format(data, "%m"))], format(data, "%Y"), sep = "/")
+}
+
+# ---------------------------------------------------------------------------
 # Paleta e tipografia da identidade visual "Cidadania Financeira"
 # ---------------------------------------------------------------------------
 COR_PRIMARIA   <- "#1B3A4B"  # azul-petróleo profundo (navbar, títulos)
@@ -39,8 +63,22 @@ meu_tema <- bs_theme(
   "border-radius" = "0.6rem"
 )
 
-# Configurar o locale para português do Brasil
-Sys.setlocale("LC_TIME", "pt_BR.UTF-8")
+# Configurar o locale para português do Brasil, se disponível no sistema.
+# Isso afeta apenas nomes de dia/mês vindos de format()/strftime() nativos;
+# as datas do painel usam formatar_mes_ano() acima, que não depende disso.
+# Tenta variações comuns entre Linux, macOS e Windows, sem interromper o
+# app caso nenhuma esteja instalada (comum em servidores de hospedagem).
+locale_ok <- FALSE
+for (loc in c("pt_BR.UTF-8", "pt_BR", "Portuguese_Brazil.1252", "Portuguese_Brazil")) {
+  resultado <- suppressWarnings(tryCatch(Sys.setlocale("LC_TIME", loc), error = function(e) ""))
+  if (nzchar(resultado)) {
+    locale_ok <- TRUE
+    break
+  }
+}
+if (!locale_ok) {
+  message("Locale pt_BR não encontrado no sistema — usando nomes de mês em português definidos manualmente (NOMES_MES_PT).")
+}
 
 # Carregar os dados
 CT       <- readRDS("CT.rds")
@@ -90,8 +128,8 @@ ESTUDANTES_COLABORADORES <- c(
 ui <- navbarPage(
   title = div(
     tags$a(
-      href = "https://bttomio.shinyapps.io/cidadaniafinanceira/",  # Link para a página inicial (ajuste conforme a URL da sua aplicação)
-      "Cidadania Financeira [FURB]",
+      href = PROJETO_URL,
+      PROJETO_NOME,
       style = "text-decoration: none; color: inherit; font-family: 'Source Serif 4', serif; font-weight: 600; letter-spacing: 0.2px;"
     )
   ),
@@ -326,17 +364,20 @@ ui <- navbarPage(
                      br(),
                      br(),
                      div(class = "inicio-text",
-                         HTML("Esta plataforma divulga os dados coletados pelo projeto de extensão <strong>Cidadania Financeira</strong> da 
-        <a href='https://www.furb.br' target='_blank'>Universidade Regional de Blumenau (FURB)</a>.")
+                         HTML(paste0(
+                           "Esta plataforma divulga os dados coletados pelo projeto de extensão <strong>",
+                           PROJETO_NOME, "</strong> da <a href='", INSTITUICAO_URL, "' target='_blank'>",
+                           INSTITUICAO_NOME, "</a>."
+                         ))
                      ),
                      div(class = "inicio-text",
                          "Escolha uma das opções no menu acima para visualizar os dados da cesta básica e dos produtos analisados."),
                      br(),
                      uiOutput("destaque_cesta_ui"),
                      br(),
-                     div(class = "info-box", paste("Última atualização: 15/09/2026")), # MANUAL
+                     uiOutput("ultima_atualizacao_ui"),
                      br(),
-                     img(src = "logo.jpg", class = "inicio-logo")
+                     img(src = LOGO_PATH, class = "inicio-logo")
                  )
                )
            )
@@ -477,7 +518,7 @@ ui <- navbarPage(
                         fluidPage(
                           br(),
                           tags$div(style = "font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 20px 0;",
-                                   "Baixe as bases de dados completas do projeto Cidadania Financeira."),
+                                   paste0("Baixe as bases de dados completas do projeto ", PROJETO_NOME, ".")),
                           
                           fluidRow(
                             column(4,
@@ -527,11 +568,11 @@ ui <- navbarPage(
         fluidPage(
           div(class = "inicio-container",
               div(class = "inicio-text",
-                  "Confira divulgações do projeto Cidadania Financeira:"),
+                  paste0("Confira divulgações do projeto ", PROJETO_NOME, ":")),
               br(),
               div(class = "inicio-text",
                   tags$a(
-                    href = "https://youtube.com/playlist?list=PLAL8vVk6Z3KDgc7DBFHEa8ddIM5dTgBh-&si=0QSsK_77HA874AxZ",
+                    href = YOUTUBE_PLAYLIST,
                     target = "_blank",
                     class = "media-link",
                     "Colunas no Boletim de Economia da FURB FM (107,1)"
@@ -539,14 +580,14 @@ ui <- navbarPage(
               ),
               div(class = "inicio-text",
                   tags$a(
-                    href = "https://globoplay.globo.com/v/13715431/",
+                    href = GLOBOPLAY_URL,
                     target = "_blank",
                     class = "media-link",
                     "Participação ao vivo no Jornal do Almoço (Blumenau) - NSC TV [GloboPlay]"
                   )
               ),
               br(),
-              img(src = "logo.jpg", class = "inicio-logo")
+              img(src = LOGO_PATH, class = "inicio-logo")
           )
         )
     )
@@ -576,13 +617,15 @@ ui <- navbarPage(
               
               div(class = "inicio-text",
                   "Entre em contato conosco: ",
-                  tags$a(href = "mailto:bttomio@furb.br?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui...", "bttomio@furb.br")),
+                  tags$a(href = paste0("mailto:", CONTATO_EMAIL,
+                                        "?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui..."),
+                         CONTATO_EMAIL)),
               div(class = "inicio-text",
                   "Estamos sempre à disposição!"),
               br(),
               div(class = "inicio-text",
-                  tags$a(href = "https://www.furb.br", target = "_blank",
-                         img(src = "logo.jpg", class = "inicio-logo"))
+                  tags$a(href = INSTITUICAO_URL, target = "_blank",
+                         img(src = LOGO_PATH, class = "inicio-logo"))
               )
           )
         )
@@ -592,10 +635,7 @@ ui <- navbarPage(
 
 # Definir a lógica do servidor
 server <- function(input, output, session) {
-  
-  #Baixar os dados em formato Excel
-  library(writexl)
-  
+
   # Cesta Básica
   output$download_CT_xlsx <- downloadHandler(
     filename = function() paste0("cesta_basica_", Sys.Date(), ".xlsx"),
@@ -668,7 +708,7 @@ server <- function(input, output, session) {
       div(class = "destaque-cesta",
           div(class = "rotulo", "Cesta básica em"),
           div(class = "rotulo-cidade", linha$Cidade),
-          div(class = "rotulo-periodo", format(linha$Período, "%B/%Y")),
+          div(class = "rotulo-periodo", formatar_mes_ano(linha$Período)),
           div(class = "valor", paste0("R$ ", scales::number(linha$Cesta, decimal.mark = ",", big.mark = ".", accuracy = 0.01))),
           div(class = paste("valor-mono", classe_variacao),
               paste0(sinal, scales::number(variacao, decimal.mark = ",", accuracy = 0.01), "% no mês"))
@@ -677,6 +717,14 @@ server <- function(input, output, session) {
     
     div(style = "display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;",
         cards)
+  })
+  
+  # Data da última coleta disponível na base (calculada a partir dos
+  # dados, em vez de um texto fixo que precisaria ser atualizado à mão)
+  output$ultima_atualizacao_ui <- renderUI({
+    if (nrow(CT) == 0 || all(is.na(CT$Período))) return(NULL)
+    ultima_data <- max(CT$Período, na.rm = TRUE)
+    div(class = "info-box", paste("Última atualização:", formatar_mes_ano(ultima_data)))
   })
   
   # Garantir que a coluna 'Mês' seja tratada como um fator ordenado cronologicamente

@@ -19,6 +19,7 @@ library(writexl)
 # ou equipe, sem precisar procurar strings espalhadas pelo arquivo.
 PROJETO_NOME       <- "Cidadania Financeira [FURB]"
 PROJETO_URL        <- "https://bttomio.shinyapps.io/cidadaniafinanceira/"
+REPO_URL           <- "https://github.com/bttomio/cidadania-financeira-cesta-basica"  # ajuste para a URL real do seu repositório
 INSTITUICAO_NOME   <- "Universidade Regional de Blumenau (FURB)"
 INSTITUICAO_URL    <- "https://www.furb.br"
 CONTATO_EMAIL      <- "bttomio@furb.br"
@@ -30,7 +31,7 @@ GLOBOPLAY_URL      <- "https://globoplay.globo.com/v/13715431/"
 # configuração de locale do sistema operacional (mais portável entre
 # Windows/Mac/Linux e entre serviços de hospedagem).
 NOMES_MES_PT <- c("Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+                  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
 
 formatar_mes_ano <- function(data) {
   paste(NOMES_MES_PT[as.integer(format(data, "%m"))], format(data, "%Y"), sep = "/")
@@ -618,10 +619,15 @@ ui <- navbarPage(
               div(class = "inicio-text",
                   "Entre em contato conosco: ",
                   tags$a(href = paste0("mailto:", CONTATO_EMAIL,
-                                        "?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui..."),
+                                       "?subject=Contato&body=Olá! Tudo bem? Por gentileza, escreva sua mensagem aqui..."),
                          CONTATO_EMAIL)),
               div(class = "inicio-text",
                   "Estamos sempre à disposição!"),
+              br(),
+              div(class = "inicio-text",
+                  "Este é um projeto de código aberto — o código-fonte está disponível no ",
+                  tags$a(href = REPO_URL, target = "_blank",
+                         icon("github"), " GitHub")),
               br(),
               div(class = "inicio-text",
                   tags$a(href = INSTITUICAO_URL, target = "_blank",
@@ -635,7 +641,7 @@ ui <- navbarPage(
 
 # Definir a lógica do servidor
 server <- function(input, output, session) {
-
+  
   # Cesta Básica
   output$download_CT_xlsx <- downloadHandler(
     filename = function() paste0("cesta_basica_", Sys.Date(), ".xlsx"),

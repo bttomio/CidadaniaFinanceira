@@ -3,7 +3,6 @@ library(shiny)
 library(DT)
 library(dplyr)
 library(ggplot2)
-library(readxl)
 library(shinydashboard)
 library(ggrepel)
 library(scales)# Carregar o pacote lubridate, se necessário
@@ -37,6 +36,62 @@ formatar_mes_ano <- function(data) {
   paste(NOMES_MES_PT[as.integer(format(data, "%m"))], format(data, "%Y"), sep = "/")
 }
 
+formatar_mes_ano_extenso <- function(data) {
+  paste0(tolower(NOMES_MES_PT[as.integer(format(data, "%m"))]),
+         " de ", format(data, "%Y"))
+}
+
+NOMES_MES_ABREV <- c("jan", "fev", "mar", "abr", "mai", "jun",
+                     "jul", "ago", "set", "out", "nov", "dez")
+
+rotulo_mes_ano <- function(x) {
+  paste0(NOMES_MES_ABREV[as.integer(format(x, "%m"))], "/", format(x, "%Y"))
+}
+formato_pct <- function(v) {
+  paste0(scales::number(v, decimal.mark = ",", accuracy = 0.01), "%")
+}
+
+formato_reais <- function(v) {
+  paste0("R$ ", scales::number(v, decimal.mark = ",", accuracy = 0.01))
+}
+
+# Gráficos
+grafico_serie <- function(dados, coluna, formato, titulo, y_lab,
+                          x_lab = "Período", linha_zero = FALSE,
+                          y_labels = waiver()) {
+  dados <- dados %>%
+    arrange(Período) %>%
+    mutate(valor   = .data[[coluna]],
+           cor     = ifelse(`Variação (%)` >= 0, COR_NEGATIVA, COR_POSITIVA),
+           cor_seg = dplyr::lead(cor),
+           rotulo  = formato(valor),
+           xend    = dplyr::lead(Período),
+           yend    = dplyr::lead(valor))
+  
+  g <- ggplot(dados, aes(x = Período, y = valor)) +
+    geom_segment(aes(xend = xend, yend = yend, color = cor_seg),
+                 linewidth = 0.9, na.rm = TRUE) +
+    geom_point(aes(color = cor), size = 2) +
+    geom_text_repel(aes(label = rotulo, color = cor),
+                    size = 4, max.overlaps = 20, show.legend = FALSE) +
+    labs(title = titulo, x = x_lab, y = y_lab) +
+    scale_y_continuous(labels = y_labels) +
+    scale_x_date(labels = rotulo_mes_ano, breaks = scales::date_breaks("1 month")) +
+    scale_color_identity() +
+    theme_bw() +
+    theme(axis.text.x  = element_text(angle = 45, hjust = 1, size = 12),
+          axis.text.y  = element_text(size = 12),
+          axis.title   = element_text(size = 12),
+          plot.title   = element_text(size = 12, face = "bold"),
+          legend.position = "none",
+          panel.border = element_rect(color = COR_PRIMARIA, linewidth = 0.6))
+  
+  if (linha_zero) {
+    g <- g + geom_hline(yintercept = 0, color = "#9CA3AF",
+                        linetype = "dashed", linewidth = 0.7)
+  }
+  g
+}
 # ---------------------------------------------------------------------------
 # Paleta e tipografia da identidade visual "Cidadania Financeira"
 # ---------------------------------------------------------------------------
@@ -61,7 +116,9 @@ meu_tema <- bs_theme(
   heading_font = font_google("Source Serif 4"),
   code_font = font_google("IBM Plex Mono"),
   "navbar-bg" = COR_PRIMARIA,
-  "border-radius" = "0.6rem"
+  "border-radius" = "0.6rem",
+  link_color = COR_SECUNDARIA,          # links em teal
+  "link-hover-color" = COR_PRIMARIA,    # hover em azul-petróleo
 )
 
 # Configurar o locale para português do Brasil, se disponível no sistema.
@@ -85,6 +142,15 @@ if (!locale_ok) {
 CT       <- readRDS("CT.rds")
 VAR_PROD <- readRDS("VAR_PROD.rds")
 PRECOS   <- readRDS("PRECOS.rds")
+
+# Converter a coluna 'Período' para o formato Date
+CT$Período       <- as.Date(CT$Período)
+VAR_PROD$Período <- as.Date(VAR_PROD$Período)
+PRECOS$Período   <- as.Date(PRECOS$Período)
+
+# Garantir que a coluna 'Mês' seja tratada como um fator ordenado cronologicamente
+CT$Mês       <- factor(CT$Mês,       levels = NOMES_MES_PT, ordered = TRUE)
+VAR_PROD$Mês <- factor(VAR_PROD$Mês, levels = NOMES_MES_PT, ordered = TRUE)
 
 # Tabela de referência: embalagem, unidade e quantidade padrão de cada produto
 TABELA_REFERENCIA <- tibble::tribble(
@@ -155,16 +221,16 @@ ui <- navbarPage(
         background-color: ", COR_PRIMARIA, " !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.12);
       }
-      .navbar-default .navbar-nav > li > a,
-      .navbar-default .navbar-brand {
+      .navbar .navbar-brand,
+      .navbar .nav-link {
         color: #F2F2F0 !important;
         font-weight: 500;
       }
-      .navbar-default .navbar-nav > li > a:hover {
+      .navbar .nav-link:hover {
         color: ", COR_DESTAQUE, " !important;
       }
-      .navbar-default .navbar-nav > .active > a,
-      .navbar-default .navbar-nav > .active > a:hover {
+      .navbar .nav-link.active,
+      .navbar .nav-link.active:hover {
         color: #FFFFFF !important;
         background-color: transparent !important;
         border-bottom: 3px solid ", COR_DESTAQUE, ";
@@ -223,10 +289,10 @@ ui <- navbarPage(
       }
 
       /* ---------- Abas internas (tabsetPanel) ---------- */
-      .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+      .nav-tabs .nav-link.active {
         color: ", COR_PRIMARIA, " !important;
         font-weight: 600;
-        border-bottom: 3px solid ", COR_DESTAQUE, ";
+        border-bottom: 3px solid ", COR_DESTAQUE, " !important;
       }
 
       /* ---------- Cartão de destaque (etiqueta de preço) ---------- */
@@ -240,13 +306,6 @@ ui <- navbarPage(
         text-align: center;
         margin-bottom: 10px;
       }
-      .destaque-cesta .rotulo {
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #6b7280;
-        margin-bottom: 4px;
-      }
       .destaque-cesta .valor {
         font-family: 'IBM Plex Mono', monospace;
         font-size: 30px;
@@ -258,13 +317,8 @@ ui <- navbarPage(
       .destaque-cesta .rotulo-cidade {
         font-size: 18px;
         font-weight: 700;
-        color: ", COR_PRIMARIA, ";
+        color: ", COR_DESTAQUE, ";
         margin-bottom: 2px;
-      }
-      .destaque-cesta .rotulo-periodo {
-        font-size: 13px;
-        color: #6b7280;
-        margin-bottom: 8px;
       }
       .destaque-cesta .valor-mono {
         font-family: 'IBM Plex Mono', monospace;
@@ -272,23 +326,25 @@ ui <- navbarPage(
         display: block;
         margin-top: 4px;
       }
-
+      /* ---------- Cartões de download (aba Dados) ---------- */
+      .card-download {
+        display: inline-block;
+        background-color: #FFFFFF;
+        border: 1.5px solid ", COR_PRIMARIA, ";
+        border-radius: 12px;
+        padding: 18px 28px;
+        box-shadow: 0 4px 14px rgba(27,58,75,0.10);
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      .card-download .rotulo {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #6b7280;
+        margin-bottom: 4px;
+      }
       /* ---------- Elementos diversos ---------- */
-      .youtube-container {
-        position: relative;
-        padding-bottom: 56.25%; /* Proporção 16:9 */
-        height: 0;
-        overflow: hidden;
-        max-width: 100%;
-        margin-bottom: 20px;
-      }
-      .youtube-container iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-      }
       .media-link {
         font-size: 18px;
         color: ", COR_SECUNDARIA, ";
@@ -297,22 +353,36 @@ ui <- navbarPage(
       }
       .media-link:hover {
         text-decoration: underline;
-        color: ", COR_DESTAQUE, ";
-      }
-      .intro-text {
-        font-size: 16px;
-        color: #34495e;
-        margin-bottom: 20px;
-      }
-      .intro-text h3 {
-        font-size: 24px;
-        font-weight: bold;
         color: ", COR_PRIMARIA, ";
-        margin-bottom: 10px;
       }
-      .intro-text ul {
-        margin-left: 20px;
+      /* ---------- Páginas Início, Mídia e Equipe ---------- */
+      .inicio-container {
+        text-align: center;
+        padding: 40px 20px;
+      }
+      .inicio-logo {
+        max-width: 200px;
+        margin-top: 20px;
+      }
+      .inicio-title {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #2c3e50;
+      }
+      .inicio-text {
+        font-size: 18px;
         margin-bottom: 20px;
+        color: #34495e;
+      }
+      .info-box {
+        display: inline-block;
+        background-color: #f5f5f5;
+        border-left: 5px solid ", COR_SECUNDARIA, ";
+        padding: 15px 20px;
+        font-size: 16px;
+        color: #2c3e50;
+        border-radius: 8px;
       }
       /* ---------- Fundo branco (Início e Equipe) ---------- */
       .fundo-branco {
@@ -327,39 +397,6 @@ ui <- navbarPage(
   tabPanel("Início",
            div(class = "fundo-branco",
                fluidPage(
-                 tags$head(
-                   tags$style(HTML("
-        .inicio-container {
-          text-align: center;
-          padding: 40px 20px;
-        }
-        .inicio-logo {
-          max-width: 200px;
-          margin-top: 20px;
-        }
-        .inicio-title {
-          font-size: 32px;
-          font-weight: bold;
-          margin-bottom: 10px;
-          color: #2c3e50;
-        }
-        .inicio-text {
-          font-size: 18px;
-          margin-bottom: 20px;
-          color: #34495e;
-        }
-        .info-box {
-          display: inline-block;
-          background-color: #f5f5f5;
-          border-left: 5px solid #007bff;
-          padding: 15px 20px;
-          font-size: 16px;
-          color: #2c3e50;
-          border-radius: 8px;
-        }
-      "))
-                 ),
-                 
                  div(class = "inicio-container",
                      div(class = "inicio-title", "Bem-vindo(a)! Agradecemos muito sua visita!"),
                      br(),
@@ -374,6 +411,7 @@ ui <- navbarPage(
                      div(class = "inicio-text",
                          "Escolha uma das opções no menu acima para visualizar os dados da cesta básica e dos produtos analisados."),
                      br(),
+                     uiOutput("texto_destaque_ui"),
                      uiOutput("destaque_cesta_ui"),
                      br(),
                      uiOutput("ultima_atualizacao_ui"),
@@ -398,9 +436,7 @@ ui <- navbarPage(
                           sidebarLayout(
                             sidebarPanel(
                               selectInput("cidade", "Selecione a Cidade", choices = c("Todos", sort(unique(CT$Cidade))), selected = "Todos"),
-                              selectInput("mes", "Selecione o Mês", choices = c("Todos", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", 
-                                                                                "Junho", "Julho", "Agosto", "Setembro", "Outubro", 
-                                                                                "Novembro", "Dezembro"), selected = "Todos"),
+                              selectInput("mes", "Selecione o Mês", choices = c("Todos", NOMES_MES_PT), selected = "Todos"),
                               selectInput("ano", "Selecione o Ano", choices = c("Todos", unique(CT$Ano)), selected = "Todos")
                             ),
                             mainPanel(
@@ -435,9 +471,7 @@ ui <- navbarPage(
                             sidebarPanel(
                               selectInput("produto", "Selecione o Produto", choices = c("Todos", unique(VAR_PROD$Produto)), selected = "Todos"),
                               selectInput("cidade_produto", "Selecione a Cidade", choices = c("Todos", sort(unique(VAR_PROD$Cidade))), selected = "Todos"),
-                              selectInput("mes_produto", "Selecione o Mês", choices = c("Todos", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", 
-                                                                                        "Junho", "Julho", "Agosto", "Setembro", "Outubro", 
-                                                                                        "Novembro", "Dezembro"), selected = "Todos"),
+                              selectInput("mes_produto", "Selecione o Mês", choices = c("Todos", NOMES_MES_PT), selected = "Todos"),
                               selectInput("ano_produto", "Selecione o Ano", choices = c("Todos", unique(VAR_PROD$Ano)), selected = "Todos")
                             ),
                             mainPanel(
@@ -475,9 +509,7 @@ ui <- navbarPage(
                                           choices = c("Todos", unique(PRECOS$Produto)), selected = "Todos"),
                               selectInput("preco_cidade", "Selecione a Cidade", choices = c("Todos", sort(unique(PRECOS$Cidade))), selected = "Todos"),
                               selectInput("preco_mes", "Selecione o Mês",
-                                          choices = c("Todos", "Janeiro", "Fevereiro", "Março", "Abril", "Maio",
-                                                      "Junho", "Julho", "Agosto", "Setembro", "Outubro",
-                                                      "Novembro", "Dezembro"), selected = "Todos"),
+                                          choices = c("Todos", NOMES_MES_PT), selected = "Todos"),
                               selectInput("preco_ano", "Selecione o Ano",
                                           choices = c("Todos", unique(PRECOS$Ano)), selected = "Todos")
                             ),
@@ -509,7 +541,12 @@ ui <- navbarPage(
                tabPanel("Metodologia da Cesta",
                         fluidPage(
                           br(),
-                          p("Ela é baseada na Cesta Básica de Alimentos do DIEESE (Departamento Intersindical de Estatística e Estudos Socioeconômicos), pesquisada mensalmente em 18 capitais brasileiras. É uma cesta de alimentos composta por 13 produtos alimentícios em quantidades suficientes para garantir, durante um mês, o sustento e bem-estar de uma pessoa adulta."),
+                          p("A cesta é baseada na ",
+                            tags$a(href = "https://www.dieese.org.br/cesta/",
+                                   target = "_blank",
+                                   rel = "noopener noreferrer",
+                                   "Cesta Básica de Alimentos do DIEESE"),
+                            " (Departamento Intersindical de Estatística e Estudos Socioeconômicos), pesquisada mensalmente em várias capitais brasileiras. É uma cesta de alimentos composta por 13 produtos alimentícios em quantidades suficientes para garantir, durante um mês, o sustento e bem-estar de uma pessoa adulta."),
                           h4("Composição da Cesta Básica - Região 3, que inclui Santa Catarina"),
                           tableOutput("regiao3_table")
                         )
@@ -523,7 +560,7 @@ ui <- navbarPage(
                           
                           fluidRow(
                             column(4,
-                                   div(class = "destaque-cesta",
+                                   div(class = "card-download",
                                        div(class = "rotulo", "Cesta Básica"),
                                        br(),
                                        p("Valor mensal da cesta básica por cidade."),
@@ -534,7 +571,7 @@ ui <- navbarPage(
                                    )
                             ),
                             column(4,
-                                   div(class = "destaque-cesta",
+                                   div(class = "card-download",
                                        div(class = "rotulo", "Variação de Produtos"),
                                        br(),
                                        p("Variação percentual mensal por produto e cidade."),
@@ -545,7 +582,7 @@ ui <- navbarPage(
                                    )
                             ),
                             column(4,
-                                   div(class = "destaque-cesta",
+                                   div(class = "card-download",
                                        div(class = "rotulo", "Preços"),
                                        br(),
                                        p("Preço médio mensal por produto e cidade."),
@@ -676,16 +713,11 @@ server <- function(input, output, session) {
   output$regiao3_table <- renderTable({
     data.frame(
       Produto = c("Açúcar", "Arroz", "Batata", "Café em pó", "Carne bovina", "Farinha", "Feijão", "Fruta (banana)", "Leite", "Manteiga", "Óleo de soja", "Pão francês", "Tomate"),
-      Quantidade = c("3,0 kg", "3,0 kg", "6,0 kg", "600 g", "6,6 kg", "1,5 kg", "4,5 kg", "90 unidades", "7,5 l", "750 g", "900 g", "6,0 kg", "9,0 kg")
+      Quantidade = c("3,0 kg", "3,0 kg", "6,0 kg", "600 g", "6,6 kg", "1,5 kg", "4,5 kg", "90 unidades", "7,5 l", "750 g", "900 ml", "6,0 kg", "9,0 kg")
     )
   })
   
-  # Converter a coluna 'Período' para o formato Date
-  CT$Período <- as.Date(CT$Período)
-  VAR_PROD$Período <- as.Date(VAR_PROD$Período)
-  PRECOS$Período <- as.Date(PRECOS$Período)
-  
-  # Filtrar o último valor da cesta básica de Blumenau
+  # Filtrar o último valor da cesta básica
   ultimo_valor_cesta <- reactive({
     if (nrow(CT) == 0) return(NULL)
     
@@ -699,8 +731,24 @@ server <- function(input, output, session) {
     
     if (nrow(dados) == 0) NULL else dados
   })
+ 
+  # Texto dinâmico para o destaque na página inicial com o valor mais recente da cesta básica
   
-  # Cartão de destaque na página inicial com o valor mais recente da cesta básica (Blumenau)
+  output$texto_destaque_ui <- renderUI({
+    dados <- ultimo_valor_cesta()
+    if (is.null(dados)) return(NULL)
+    
+    periodo_atual    <- dados$Período[1]
+    periodo_anterior <- lubridate::floor_date(periodo_atual, "month") %m-% months(1)
+    
+    div(class = "inicio-text",
+        "Para ", 
+        tags$strong(formatar_mes_ano_extenso(periodo_atual)),
+        ", estes são os valores e as variações em relação a ",
+        formatar_mes_ano_extenso(periodo_anterior), " para cada cidade:")
+  })
+ 
+  # Cartão de destaque na página inicial com o valor mais recente da cesta básica
   output$destaque_cesta_ui <- renderUI({
     dados <- ultimo_valor_cesta()
     if (is.null(dados)) return(NULL)
@@ -712,12 +760,10 @@ server <- function(input, output, session) {
       sinal <- if (variacao >= 0) "+" else ""
       
       div(class = "destaque-cesta",
-          div(class = "rotulo", "Cesta básica em"),
           div(class = "rotulo-cidade", linha$Cidade),
-          div(class = "rotulo-periodo", formatar_mes_ano(linha$Período)),
           div(class = "valor", paste0("R$ ", scales::number(linha$Cesta, decimal.mark = ",", big.mark = ".", accuracy = 0.01))),
           div(class = paste("valor-mono", classe_variacao),
-              paste0(sinal, scales::number(variacao, decimal.mark = ",", accuracy = 0.01), "% no mês"))
+              paste0(sinal, scales::number(variacao, decimal.mark = ",", accuracy = 0.01), "%"))
       )
     })
     
@@ -733,13 +779,7 @@ server <- function(input, output, session) {
     div(class = "info-box", paste("Última atualização:", formatar_mes_ano(ultima_data)))
   })
   
-  # Garantir que a coluna 'Mês' seja tratada como um fator ordenado cronologicamente
-  CT$Mês <- factor(CT$Mês, levels = c("Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", 
-                                      "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"), ordered = TRUE)
-  
-  VAR_PROD$Mês <- factor(VAR_PROD$Mês, levels = c("Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", 
-                                                  "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"), ordered = TRUE)
-  
+
   # Filtrar dados da Cesta Básica com base nas seleções do usuário
   dados_filtrados <- reactive({
     CT %>%
@@ -851,145 +891,48 @@ server <- function(input, output, session) {
       )
   })
   
-  # Renderizar o gráfico de Preço Médio e Variação Mensal
+  # Renderizar os gráficos
+  # Gráfico de Preço Médio e Variação Mensal
   output$grafico_precos <- renderPlot({
-    dados_precos <- PRECOS %>%
-      filter(
-        Produto == input$preco_produto,
-        Cidade  == input$preco_cidade
-      ) %>%
-      arrange(Período) %>%
-      mutate(
-        label_color = ifelse(`Variação (%)` >= 0, COR_NEGATIVA, COR_POSITIVA),
-        xend = dplyr::lead(Período),
-        yend = dplyr::lead(`Média (produto)`)
-      )
-    
-    req(nrow(dados_precos) > 0)
-    
-    ggplot(dados_precos, aes(x = Período, y = `Média (produto)`, group = Produto)) +
-      geom_segment(aes(xend = xend, yend = yend, color = lead(label_color)), linewidth = 0.9, na.rm = TRUE) +
-      geom_point(aes(color = label_color), size = 2) +
-      geom_text_repel(aes(label = paste0("R$ ", scales::number(`Média (produto)`, decimal.mark = ",", accuracy = 0.01))),
-                      size = 12/3,
-                      nudge_y = ifelse(dados_precos$`Variação (%)` >= 0, 0.2, -0.2),
-                      max.overlaps = 20,
-                      box.padding = 0.35,
-                      point.padding = 0.5,
-                      segment.size = 0.2,
-                      direction = "both",
-                      force = 1,
-                      show.legend = FALSE,
-                      color = dados_precos$label_color) +
-      labs(title = paste("Preço Médio —", input$preco_produto, "em", input$preco_cidade),
-           x = "Período", y = "Preço Médio (R$)") +
-      scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), breaks = scales::date_breaks("1 month")) +
-      scale_color_identity() +
-      theme_bw() +
-      theme(
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
-        axis.text.y = element_text(size = 12),
-        axis.title = element_text(size = 12),
-        plot.title = element_text(size = 12, face = "bold"),
-        legend.position = "none",
-        panel.border = element_rect(color = COR_PRIMARIA, linewidth = 0.6)
-      )
-  })
-  
-  # Renderizar o gráfico de Variação Mensal da Cesta Básica
-  output$grafico_cesta <- renderPlot({
-    dados <- dados_filtrados()
-    
+    dados <- PRECOS %>%
+      filter(Produto == input$preco_produto,
+             Cidade  == input$preco_cidade)
     req(nrow(dados) > 0)
     
-    dados <- dados %>%
-      mutate(Período = as.Date(Período)) %>%
-      group_by(Cidade) %>%
-      arrange(Período) %>%
-      mutate(
-        label_color = ifelse(`Variação (%)` >= 0, COR_NEGATIVA, COR_POSITIVA),
-        xend = dplyr::lead(Período),
-        yend = dplyr::lead(`Variação (%)`)
-      ) %>%
-      ungroup()
-    
-    ggplot(dados, aes(x = Período, y = `Variação (%)`, group = Cidade)) +
-      geom_segment(aes(xend = xend, yend = yend, color = lead(label_color)), linewidth = 0.9, na.rm = TRUE) +
-      geom_point(aes(color = label_color), size = 2) +
-      geom_text_repel(aes(label = paste0(scales::number(`Variação (%)`, decimal.mark = ",", accuracy = 0.01), "%")),
-                      size = 12/3,
-                      nudge_y = ifelse(dados$`Variação (%)` >= 0, 0.2, -0.2),
-                      max.overlaps = 20,
-                      box.padding = 0.35,
-                      point.padding = 0.5,
-                      segment.size = 0.2,
-                      direction = "both",
-                      force = 1,
-                      show.legend = FALSE,
-                      color = dados$label_color) +
-      geom_hline(yintercept = 0, color = "#9CA3AF", linetype = "dashed", linewidth = 0.7) +
-      labs(title = paste("Variação Percentual da Cesta Básica em", input$cidade), 
-           x = NULL, 
-           y = "Variação (%)") +
-      scale_y_continuous(labels = label_percent(scale = 1)) +
-      scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), breaks = scales::date_breaks("1 month")) +
-      scale_color_identity() +
-      theme_bw() +
-      theme(
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
-        axis.text.y = element_text(size = 12),
-        axis.title = element_text(size = 12),
-        plot.title = element_text(size = 12, face = "bold"),
-        legend.position = "none",
-        panel.border = element_rect(color = COR_PRIMARIA, linewidth = 0.6)
-      )
+    grafico_serie(dados,
+                  coluna  = "Média (produto)",
+                  formato = formato_reais,
+                  titulo  = paste("Preço Médio —", input$preco_produto, "em", input$preco_cidade),
+                  y_lab   = "Preço Médio (R$)")
   })
   
-  # Renderizar o gráfico de Variação Mensal dos Produtos
+  # Gráfico de Variação Mensal da Cesta Básica
+  output$grafico_cesta <- renderPlot({
+    dados <- dados_filtrados()
+    req(nrow(dados) > 0)
+    
+    grafico_serie(dados,
+                  coluna     = "Variação (%)",
+                  formato    = formato_pct,
+                  titulo     = paste("Variação Percentual da Cesta Básica em", input$cidade),
+                  y_lab      = "Variação (%)",
+                  x_lab      = NULL,
+                  linha_zero = TRUE,
+                  y_labels   = label_percent(scale = 1))
+  })
+  
+  # Gráfico de Variação Mensal dos Produtos
   output$grafico_produtos <- renderPlot({
-    dados_produtos <- dados_produtos_filtrados()
+    dados <- dados_produtos_filtrados()
+    req(nrow(dados) > 0)
     
-    req(nrow(dados_produtos) > 0)
-    
-    dados_produtos <- dados_produtos %>%
-      mutate(Período = as.Date(Período)) %>%
-      group_by(Produto) %>%
-      arrange(Período) %>%
-      mutate(
-        label_color = ifelse(`Variação (%)` >= 0, COR_NEGATIVA, COR_POSITIVA),
-        xend = dplyr::lead(Período),
-        yend = dplyr::lead(`Variação (%)`)
-      ) %>%
-      ungroup()
-    
-    ggplot(dados_produtos, aes(x = Período, y = `Variação (%)`, group = Produto)) +
-      geom_segment(aes(xend = xend, yend = yend, color = lead(label_color)), linewidth = 0.9, na.rm = TRUE) +
-      geom_point(aes(color = label_color), size = 2) +
-      geom_text_repel(aes(label = paste0(scales::number(`Variação (%)`, decimal.mark = ",", accuracy = 0.01), "%")),
-                      size = 12/3,
-                      nudge_y = ifelse(dados_produtos$`Variação (%)` >= 0, 0.2, -0.2),
-                      max.overlaps = 20,
-                      box.padding = 0.35,
-                      point.padding = 0.5,
-                      segment.size = 0.2,
-                      direction = "both",
-                      force = 1,
-                      show.legend = FALSE,
-                      color = dados_produtos$label_color) +
-      geom_hline(yintercept = 0, color = "#9CA3AF", linetype = "dashed", linewidth = 0.7) +
-      labs(title = paste("Variação do Produto:", input$produto), x = "Período", y = "Variação (%)") +
-      scale_y_continuous(labels = label_percent(scale = 1)) +
-      scale_x_date(labels = scales::date_format("%b/%Y", locale = "pt_BR"), breaks = scales::date_breaks("1 month")) +
-      scale_color_identity() +
-      theme_bw() +
-      theme(
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
-        axis.text.y = element_text(size = 12),
-        axis.title = element_text(size = 12),
-        plot.title = element_text(size = 12, face = "bold"),
-        legend.position = "none",
-        panel.border = element_rect(color = COR_PRIMARIA, linewidth = 0.6)
-      )
+    grafico_serie(dados,
+                  coluna     = "Variação (%)",
+                  formato    = formato_pct,
+                  titulo     = paste("Variação do Produto:", input$produto),
+                  y_lab      = "Variação (%)",
+                  linha_zero = TRUE,
+                  y_labels   = label_percent(scale = 1))
   })
 }
 
